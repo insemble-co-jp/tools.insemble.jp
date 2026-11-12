@@ -9,7 +9,8 @@
     "prebuild": "node scripts/copy-pdfjs.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "og": "node scripts/og/render.mjs"
+    "og": "node scripts/og/render.mjs",
+    "samples": "node scripts/samples/render.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

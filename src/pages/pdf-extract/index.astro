@@ -3,6 +3,11 @@
    PDFはブラウザの中だけで読む（サーバーには送らない）。pdf.js は PDF を選んだときに読み込む */
 import ToolPage from "../../layouts/ToolPage.astro";
 import Icon from "../../components/Icon.astro";
+import { SAMPLES } from "../../data/samples.js";
+
+/* 見本（npm run samples で作る）。1ページ目の文字は、はじめの数行だけ見せる */
+const SP = SAMPLES.pdf;
+const SP_TEXT = SP.text[0].split("\n").slice(0, 6).join("\n");
 
 const FAQ = [
   { q: "PDFはどこかに送られますか？", a: "送られません。読み取りはすべて、お使いのブラウザの中で行います。ファイルが運営者のサーバーや外部のサービスに届くことはありません。ページを閉じると、読み込んだ内容も消えます。" },
@@ -73,7 +78,7 @@ const SCENES = {
   <div class="tp-panel pdfx" id="pdfx">
     <!-- 1. ファイルを選ぶ -->
     <div class="pdfx-pick" data-stage="pick">
-      <label class="drop" id="pdf-drop">
+      <label class="drop mid" id="pdf-drop">
         <input type="file" id="pdf-file" accept="application/pdf,.pdf" />
         <span class="drop-ic"><Icon name="upload" size={26} /></span>
         <span class="drop-t">PDFをここにドロップ</span>
@@ -89,6 +94,33 @@ const SCENES = {
       </form>
       <p class="prog" id="pdf-opening" hidden><span class="spin dark" aria-hidden="true"></span><span role="status">PDFを開いています…</span></p>
       <div class="msgs" id="pdf-pick-msgs"></div>
+
+      <!-- 見本：PDFを入れる前から、取り出したものを見せる（入れると、この欄ごと隠れる） -->
+      <section class="sample" aria-label="見本の結果" data-nosnippet>
+        <div class="sample-h">
+          <span class="sample-tag">見本</span>
+          <p class="sample-t">{SP.pageCount}ページのチラシから、こう取り出せます</p>
+          <button type="button" class="btn btn-ghost btn-sm sample-try" id="pdf-sample" data-src={SP.src} data-name={SP.name}><Icon name="play" size={15} />この見本で試す</button>
+        </div>
+        <div class="sample-body pdfx-sample">
+          <div class="pdfx-sc">
+            <p class="pdfx-sc-h"><Icon name="text" size={16} />テキスト<b>{SP.pageCount}</b>ページ分</p>
+            <div class="pdfx-txt">{SP_TEXT}</div>
+          </div>
+          <div class="pdfx-sc">
+            <p class="pdfx-sc-h"><Icon name="image" size={16} />画像<b>{SP.images.length}</b>枚</p>
+            <div class="pdfx-sc-row">
+              {SP.images.map((im, i) => <div class="pdfx-thumb"><img src={im.src} width={im.w} height={im.h} alt={`見本のチラシから取り出した画像${i + 1}`} loading="lazy" decoding="async" /></div>)}
+            </div>
+          </div>
+          <div class="pdfx-sc">
+            <p class="pdfx-sc-h"><Icon name="pages" size={16} />ページ画像<b>{SP.pages.length}</b>枚</p>
+            <div class="pdfx-sc-row">
+              {SP.pages.map((pg, i) => <div class="pdfx-thumb page"><img src={pg.src} width={pg.w} height={pg.h} alt={`見本のチラシの${i + 1}ページ目`} loading="lazy" decoding="async" /></div>)}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
     <!-- 2. 取り出す -->
@@ -136,6 +168,7 @@ const SCENES = {
   .pdfx{padding:var(--g-md)}
   @media(max-width:560px){.pdfx{padding:var(--g-sm)}}
   .pdfx-pick{display:flex;flex-direction:column;gap:var(--g-sm)}
+  .pdfx-pick .sample{margin-top:var(--g-xs)}
   .pdfx-pass{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
   .pdfx-pass .fld{flex:1;min-width:220px}
   .pdfx-pass .btn{min-height:48px}
@@ -147,6 +180,15 @@ const SCENES = {
   .pdfx-meta{font-size:14px;color:var(--muted);margin-top:2px}
   .pdfx-acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.2fr);gap:8px}
   @media(max-width:760px){.pdfx-acts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  /* 見本：左に文字、右に画像とページ画像。スマホでは文字の下に2つを並べる */
+  .pdfx-sample{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);gap:var(--g-sm)}
+  .pdfx-sc{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .pdfx-sc-h{display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px;color:var(--ink)}
+  .pdfx-sc-h svg{color:var(--primary)}
+  .pdfx-sc-h b{font-family:var(--font-display);font-size:17px;margin:0 1px}
+  .pdfx-sample .pdfx-txt{font-size:14px;line-height:1.7;max-height:none;overflow:hidden;flex:1}
+  .pdfx-sc-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  @media(max-width:760px){.pdfx-sample{grid-template-columns:repeat(2,minmax(0,1fr))}.pdfx-sample .pdfx-sc:first-child{grid-column:1/-1}}
   .pdfx-act{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:8px 12px;border-radius:var(--r);border:1.5px solid var(--line-2);background:#fff;font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink-2);transition:.15s}
   .pdfx-act svg{color:var(--primary)}
   .pdfx-act:hover{border-color:var(--primary);color:var(--primary-ink)}

@@ -24,6 +24,8 @@ AddType text/javascript .mjs
 AddType application/wasm .wasm
 # あと何日？をアプリとして置くための設定ファイル
 AddType application/manifest+json .webmanifest
+# 見本の画像（PDFばらし屋・画像ばらし屋）。nosniff を付けているので、種類をはっきりさせる
+AddType image/webp .webp
 
 <IfModule mod_headers.c>
   # ファイル名にハッシュが付く Astro の出力は長期キャッシュ
@@ -33,6 +35,10 @@ AddType application/manifest+json .webmanifest
   # あと何日？の Service Worker は、更新がすぐ届くようにキャッシュさせない
   <If "%{REQUEST_URI} == '/deadline/sw.js'">
     Header set Cache-Control "no-cache"
+  </If>
+  # ツールの見本（架空のチラシのPDFなど）は、検索結果に出さない
+  <If "%{REQUEST_URI} =~ m#^/(pdf-extract|image-split)/sample#">
+    Header set X-Robots-Tag "noindex"
   </If>
   # pdf.js の付属データ（cmaps など）は中身がめったに変わらないので1週間
   <If "%{REQUEST_URI} =~ m#^/pdfjs/#">
