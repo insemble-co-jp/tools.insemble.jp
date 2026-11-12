@@ -111,7 +111,11 @@ export function weekly(deadlines, now) {
 }
 
 /** お知らせの1行：いちばん近い（いちばん緊急な）締切を代表にする */
-export function notice(cards) {
+/** 絞り込んで、まだ終わっていない締切が0件のときの文言（who：null＝すべて／""＝自分／名前）。ほかの人の締切まで無いように見せない */
+export const noneFor = (who) => (who == null ? "" : `${who ? `「${who}」` : "自分"}のまだ終わっていない締切はありません`);
+
+export function notice(cards, who = null) {
+  if (!cards.length && who != null) return { st: "normal", key: `none:${who}`, msg: noneFor(who), sub: "「すべて」を押すと、ほかの人の締切も表示します", dismissable: false };
   if (!cards.length) return { st: "normal", key: "none", msg: "締切はまだありません", sub: "「締切を追加」から入れると、いちばん近い締切の残り時間をここで知らせます", dismissable: false };
   const c = cards[0], t = c.title, v = c.v;
   // サンプルは落ち着いた色で。初めて開いた人に、自分の何かが期限切れになりそうな警告に見えないように

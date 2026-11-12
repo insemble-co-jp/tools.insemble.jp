@@ -6,7 +6,7 @@
    =========================================================== */
 import {
   DAY, HOUR, MIN, WD, STORE_KEY, VERSION, pad2, sod, ymd, md, hm, uid, dueAt, parts, ptext,
-  view, notice, isEndOfDay, weekly, formulas, toTsv, toCsv, parseBulk, normalize, tidy, samples, matchWho, people, label, MAX_WHO,
+  view, notice, isEndOfDay, weekly, formulas, toTsv, toCsv, parseBulk, normalize, tidy, samples, matchWho, people, label, noneFor, MAX_WHO,
 } from "../../lib/deadline.js";
 import { $, copyText, download, reduceMotion } from "./common.js";
 
@@ -265,7 +265,7 @@ function init() {
     const filtered = cards.length === 0 && who != null && data.deadlines.length > 0;
     el.empty.hidden = cards.length > 0 || ui.composer || filtered;
     el.fempty.hidden = !filtered || ui.composer;
-    if (filtered) setText(el.fempty, who ? `「${who}」の締切はありません` : "自分の締切はありません");
+    if (filtered) setText(el.fempty, noneFor(who));
     el.samples.hidden = !hasSamples();
     // 完了した締切
     el.done.hidden = !doneArr.length;
@@ -299,7 +299,7 @@ function init() {
     renderNotice(); renderMini(); renderTitle();
   }
   function renderNotice() {
-    const n = notice(live);
+    const n = notice(live, data.ui.who);
     el.nwrap.hidden = ui.noticeOff === n.key;
     if (el.notice.dataset.st !== n.st) el.notice.dataset.st = n.st;
     setText(el.nmsg, n.msg); setText(el.nsub, n.sub);
@@ -323,6 +323,7 @@ function init() {
       setText(li.children[2], c.name); setText(li.lastChild, c.v.short);
     });
     el.mempty.hidden = live.length > 0;
+    setText(el.mempty, noneFor(data.ui.who) || "締切はまだありません");
     // 絞り込んだままミニにしても、ほかの人の締切が消えたと思わないように
     const who = data.ui.who;
     el.mfil.hidden = who == null;
