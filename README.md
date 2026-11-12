@@ -9,6 +9,7 @@
 | `/` | ツールハブ | いま使えるツール（入力に合わせて絞り込み。URLを貼るとOGPチェッカーへのリンクを出す）、これから公開するツール（たたみ）、学ぶ、FAQ、運営会社 |
 | `/ogp/` | OGPチェッカー | 上＝道具ゾーン（入力→点数→直すところ→プレビュー→コード）／下＝読みもの |
 | `/pdf-extract/` | PDFばらし屋 | PDFから文字（全体・ページごと）・貼られた画像・ページ画像を取り出す。全部入りZIP |
+| `/memory-game/` | 神経衰弱メーカー | 写真か絵文字の絵柄 → 画面で遊ぶ（1〜4人）／A4に6cm角×12枚で印刷（うら面も） |
 | `/seat/` | 席順メーカー | 名前 → 卓の数・人数 → 座席表（長机／丸テーブル）。画像保存・コピー |
 | `/schedule-excel/` | スケジュール→Excelメーカー | 予定を1行ずつ → 一覧表／進行表／担当別 → Excel（.xlsx）・CSV |
 | `/deadline/` | あと何日？ | 締切の残り時間（日→時間→分で自動更新）＋今日やること。localStorage に保存、まとめて貼り付け・タブ区切りコピー・関数入りCSV。PWA（`public/deadline/` の manifest・sw.js）でアプリとして置け、オフラインでも開ける。デザインの元データは Claude Design の「あと何日？」 |
@@ -153,6 +154,7 @@ React などのUIライブラリは使っていません。画面は `.astro` �
 - どれも**ブラウザの中だけで処理**し、入れたものをサーバーに送りません。サーバーAPI・DBは増やしていません。
 - 画面の枠は `ToolPage.astro`。道具ゾーンは `data-clarity-mask` で Clarity の録画から伏せ字。
 - **PDFばらし屋**：pdf.js（`pdfjs-dist` の legacy 版）を、PDFを選んだときに動的 import（ページを開いただけでは約490KB＋worker を読まない）。取り出した画像は PNG。ZIP の中身は `text/all.txt`・`text/01.txt…`・`images/page-01-image-01.png…`・`pages/page-01.png…`。パスワード付きPDFはパスワード入力で開ける。
+- **神経衰弱**：写真は `scripts/tools/pictures.js` で真ん中を正方形（640px の JPEG）に切り抜いて blob: URL で持つ。写真がなくても遊べる絵文字の絵柄は `data/picture-sets.js`（古い端末でも出る絵文字だけ）。印刷は `scripts/tools/print.js`：`#print-root` に中身を入れて `window.print()`、`tools.css` の `@media print` で `html.is-printing` のときだけほかを隠す（PDF のライブラリなし。印刷画面の「PDFに保存」で PDF になる）。カテゴリ「あそぶ（play）」を足した。
 - **スケジュール→Excel**：入力途中の内容だけ `localStorage`（`schedule.draft`）に一時保存（規約に明記済み。リセットで消える）。表の形は `schedule-templates.js` の `TEMPLATES` に1件足せば画面にも出る（`build()` が sheet model を返す。書き方は `xlsx.js` の冒頭）。プレビューも同じ sheet model から描くので、画面とExcelがずれない。
 - **席順・グループ分け・ルーレット**：振り分けは `arrange.js`。条件は `COST` に関数を1つ足せば増やせる（前回と同じ組を避ける・男女比など）。名前の欄は「名前,部署」も読む（グループ分けで部署をばらけさせる）。
 - CSV は先頭に BOM（Excel で文字化けしない）。`=` `+` `-` `@` で始まる値は先頭に `'` を付けて、数式として動かないようにしている。

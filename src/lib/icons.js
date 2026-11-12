@@ -39,6 +39,9 @@ const P = {
   expand: '<polyline points="4 9 4 4 9 4"/><polyline points="15 4 20 4 20 9"/><polyline points="20 15 20 20 15 20"/><polyline points="9 20 4 20 4 15"/>',
   crown: '<path d="M4 8l4 4 4-7 4 7 4-4-1.5 10.5h-13L4 8Z"/>',
   users: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M16 14.2a4.6 4.6 0 0 1 4.8 4.6"/>',
+  /* 神経衰弱で使うもの */
+  print: '<path d="M7 8V4h10v4"/><rect x="4" y="8" width="16" height="8" rx="2"/><rect x="7" y="13" width="10" height="7" rx="1"/>',
+  play: '<path d="M8 5.5v13l10-6.5-10-6.5Z"/>',
 };
 
 /* ツール用（ハブの一覧・お気に入り。線は少し細め） */
@@ -69,6 +72,7 @@ const T = {
   dice: '<rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/><circle cx="9" cy="9" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
   palette: '<path d="M12 20a8 8 0 1 1 8-8c0 2.2-1.8 3-3.4 3H15a2 2 0 0 0-1.4 3.4A1.8 1.8 0 0 1 12 20Z"/><circle cx="8.6" cy="10.4" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.4" cy="9.6" r="1.1" fill="currentColor" stroke="none"/>',
   clock: '<circle cx="12" cy="12" r="8"/><polyline points="12 7.5 12 12 15.5 13.8"/>',
+  cards: '<rect x="4" y="6.5" width="10" height="13" rx="2"/><path d="M10 6.5V5.5A1.5 1.5 0 0 1 11.5 4h7A1.5 1.5 0 0 1 20 5.5v10a1.5 1.5 0 0 1-1.5 1.5H14"/><circle cx="9" cy="13" r="1.8"/>',
   pdf: '<path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3.5Z"/><polyline points="14 3.5 14 8 18.5 8"/><path d="M8.5 13.5h7M8.5 16.5h4.5"/>',
   seat: '<rect x="6.5" y="9" width="11" height="6" rx="1.6"/><circle cx="9" cy="5.5" r="1.4"/><circle cx="15" cy="5.5" r="1.4"/><circle cx="9" cy="18.5" r="1.4"/><circle cx="15" cy="18.5" r="1.4"/>',
   sheet: '<rect x="4" y="4.5" width="16" height="15" rx="2"/><line x1="4" y1="9.5" x2="20" y2="9.5"/><line x1="4" y1="14.5" x2="20" y2="14.5"/><line x1="10" y1="4.5" x2="10" y2="19.5"/>',
