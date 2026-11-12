@@ -26,7 +26,7 @@ interface Props {
   ogTitle?: string;
   h1: string;               // 小さなバッジの見出し（ツール名｜何をするか）
   lead: [string, string, string]; // 大きな一文：[前, 強調, 後]
-  sub: string;
+  sub: string | string[]; // 配列にすると、PCでは区切りごとに改行（スマホでは改行せず、文節で折り返す）
   meta: [icon: string, text: string][]; // パンくず横の「端末内で処理」など
   steps: { t: string; d: string; cta?: Cta }[];
   scenes: { intro: string; groups: SceneGroup[] }; // こんなときに使えます（利用シーン）
@@ -98,7 +98,7 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
         <div class="wrap hero-in">
           <h1 class="badge"><Icon name="sparkle" size={14} />{h1}</h1>
           <p class="hero-title"><span class="hero-a">{lead[0]}</span><span class="hl">{lead[1]}</span>{lead[2]}</p>
-          <p class="tz-sub">{sub}</p>
+          <p class="tz-sub">{Array.isArray(sub) ? sub.map((s, i) => <>{i > 0 && <br class="dt" />}{s}</>) : sub}</p>
         </div>
       </section>
 
