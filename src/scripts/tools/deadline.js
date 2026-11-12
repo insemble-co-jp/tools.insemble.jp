@@ -6,7 +6,7 @@
    =========================================================== */
 import {
   DAY, HOUR, MIN, WD, STORE_KEY, VERSION, pad2, sod, ymd, md, hm, uid, dueAt, parts, ptext,
-  view, notice, isEndOfDay, weekly, formulas, toTsv, toCsv, parseBulk, normalize, tidy, samples, matchWho, people, label, noneFor, MAX_WHO,
+  view, notice, isEndOfDay, weekly, formulas, toTsv, toCsv, parseBulk, decodeText, sameKey, MAX_FILE, normalize, tidy, samples, matchWho, people, label, noneFor, MAX_WHO,
 } from "../../lib/deadline.js";
 import { $, copyText, download, reduceMotion } from "./common.js";
 
@@ -24,7 +24,7 @@ function init() {
     place: $("#an-place"), placeT: $("#an-place-t"), placeNo: $("#an-place-no"), placeYes: $("#an-place-yes"),
     composer: $("#an-composer"), cmodeT: $("#an-cmode-t"), mode: $("#an-mode"), one: $("#an-one"), bulk: $("#an-bulk"),
     title: $("#an-title"), who: $("#an-who"), wchips: $("#an-wchips"), filter: $("#an-filter"), fempty: $("#an-fempty"), dchips: $("#an-dchips"), date: $("#an-date"), tchips: $("#an-tchips"), time: $("#an-time"),
-    kj: $("#an-kj"), eg: $("#an-eg"), bulkIn: $("#an-bulk-in"), bres: $("#an-bres"), preview: $("#an-preview"), prevL: $("#an-prev-l"), cancel: $("#an-cancel"), submit: $("#an-submit"),
+    kj: $("#an-kj"), eg: $("#an-eg"), bulkIn: $("#an-bulk-in"), file: $("#an-file"), fname: $("#an-fname"), bres: $("#an-bres"), preview: $("#an-preview"), prevL: $("#an-prev-l"), cancel: $("#an-cancel"), submit: $("#an-submit"),
     cards: $("#an-cards"), empty: $("#an-empty"), first: $("#an-first"),
     done: $("#an-done"), week: $("#an-week"), weekT: $("#an-week-t"), weekS: $("#an-week-s"), dtoggle: $("#an-dtoggle"), dn: $("#an-dn"), dlist: $("#an-dlist"),
     todayBtn: $("#an-today-btn"), tdate: $("#an-tdate"), tcount: $("#an-tcount"), tbody: $("#an-tbody"), tbar: $("#an-tbar"),
@@ -418,14 +418,18 @@ function init() {
     const v = el.who.value.trim();
     for (const c of el.wchips.children) c.setAttribute("aria-pressed", String(c.dataset.v === v));
   }
+  let fileNote = ""; // CSV ファイルを読めなかったときのお知らせ（貼り付けの確認の欄に出す）
   function renderPreview(now = Date.now()) {
     if (!ui.composer) return;
     let text, cls = "", ok;
     if (ui.mode === "bulk") {
-      const r = parseBulk(el.bulkIn.value, now);
+      const r = bulkItems(now);
       el.bres.replaceChildren();
+      if (fileNote) el.bres.append(h("span", "is-bad", fileNote + " "));
+      if (r.dup && !r.ok.length) el.bres.append(h("b", null, `${r.dup}件とも、すでに入っています。`));
       if (r.ok.length) {
-        el.bres.append(h("b", null, `${r.ok.length}件を追加できます。`));
+        const nDone = r.ok.filter((x) => x.done).length;
+        el.bres.append(h("b", null, `${r.ok.length}件を追加できます。`), nDone ? `うち${nDone}件は完了として入れます。` : "", r.dup ? `すでに入っている${r.dup}件は飛ばします。` : "");
         // どう読み取ったか（名前・期限・担当）を先頭の3件だけ見せる。担当の列がずれていたら、ここで気づける
         const ul = h("ul", "an-bprev");
         ul.append(...r.ok.slice(0, 3).map((x) => {
@@ -436,7 +440,7 @@ function init() {
         el.bres.append(ul);
       }
       if (r.bad.length) el.bres.append(h("span", "is-bad", ` ${r.bad.slice(0, 3).map((b) => b.line + "行目").join("・")}${r.bad.length > 3 ? "ほか" : ""}は読み取れないため、追加されません。タスク名と期限（例：10月10日）を1行に並べてください。`));
-      text = r.ok.length ? `${r.ok.length}件` : "貼り付けてください"; cls = r.ok.length ? "" : "is-mute"; ok = r.ok.length > 0;
+      text = r.ok.length ? `${r.ok.length}件` : r.dup ? "追加するものはありません" : "貼り付けてください"; cls = r.ok.length ? "" : "is-mute"; ok = r.ok.length > 0;
     } else {
       const due = dueAt(ui.dDate, ui.dTime);
       if (!due) { text = "日付を選んでください"; cls = "is-mute"; }
@@ -455,7 +459,7 @@ function init() {
     const d = typeof editId === "string" ? data.deadlines.find((x) => x.id === editId && !x.done) : null;
     ui.composer = true; ui.mode = "one"; ui.edit = d ? d.id : null;
     ui.dDate = d ? ymd(d.dueDate) : ymd(sod(Date.now()) + DAY + 2 * HOUR); ui.dTime = d ? hm(d.dueDate) : "23:59";
-    el.title.value = d ? d.title : ""; el.title.removeAttribute("aria-invalid"); el.bulkIn.value = "";
+    el.title.value = d ? d.title : ""; el.title.removeAttribute("aria-invalid"); el.bulkIn.value = ""; el.fname.textContent = ""; fileNote = "";
     el.who.value = d ? d.who : data.ui.who || ""; // 新しく足すときは、いま見ている人の締切として
     renderComposer(); renderDeadlines();
     el.title.focus({ preventScroll: true });
@@ -484,7 +488,8 @@ function init() {
   function addDeadlines(list) {
     const now = Date.now();
     const prev = dropSamples();
-    const made = list.map((x) => ({ id: uid(), title: x.title, dueDate: x.dueDate, createdAt: Math.min(now, x.dueDate - HOUR), done: false, doneAt: 0, who: x.who || "", sample: false }));
+    // 完了の印つき（バックアップの CSV など）は、そのまま「完了した締切」に入れる（完了のときの動きは出さない）
+    const made = list.map((x) => ({ id: uid(), title: x.title, dueDate: x.dueDate, createdAt: Math.min(now, x.dueDate - HOUR), done: !!x.done, doneAt: x.done ? now - 2000 : 0, who: x.who || "", sample: false }));
     // 見ている人と違う締切を足したら、足したものが見えるよう「すべて」に戻す
     if (data.ui.who != null && made.some((m) => m.who !== data.ui.who)) data.ui.who = null;
     data.deadlines = [...data.deadlines, ...made];
@@ -499,7 +504,7 @@ function init() {
   const snapWithout = (made) => { const ids = new Set(made.map((m) => m.id)); return { tasks: [...data.tasks], deadlines: data.deadlines.filter((d) => !ids.has(d.id)) }; };
   function submit() {
     if (ui.mode === "bulk") {
-      const r = parseBulk(el.bulkIn.value, Date.now());
+      const r = bulkItems(Date.now());
       if (!r.ok.length) { el.bulkIn.focus(); return; }
       return addDeadlines(r.ok);
     }
@@ -527,7 +532,38 @@ function init() {
   el.tchips.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { ui.dTime = b.dataset.v; renderComposer(); } });
   el.date.addEventListener("change", () => { ui.dDate = el.date.value; renderComposer(); });
   el.time.addEventListener("change", () => { ui.dTime = el.time.value || "23:59"; renderComposer(); });
-  el.bulkIn.addEventListener("input", () => renderPreview());
+  el.bulkIn.addEventListener("input", () => { fileNote = ""; renderPreview(); });
+
+  /* ---------- CSV ファイルを読み込む（選ぶ・貼り付け欄にドロップ）----------
+     中身は貼り付け欄に入れて、貼り付けと同じ確認（何件・どう読んだか）を通す。ファイルはどこにも送らない */
+  // 貼り付け欄に入っているもののうち、追加するもの（すでに同じ締切があるものは飛ばす）
+  function bulkItems(now) {
+    const r = parseBulk(el.bulkIn.value, now);
+    const have = new Set(data.deadlines.filter((d) => !d.sample).map(sameKey));
+    const ok = r.ok.filter((x) => !have.has(sameKey(x)));
+    return { ok, bad: r.bad, dup: r.ok.length - ok.length };
+  }
+  async function readFile(f) {
+    if (!f) return;
+    fileNote = "";
+    if (/\.(xlsx?|numbers)$/i.test(f.name)) fileNote = "Excel・Numbers のファイルはそのまま読めません。表をコピーして貼り付けるか、「CSV UTF-8」の形式で保存し直してから選んでください。";
+    else if (f.size > MAX_FILE) fileNote = "ファイルが大きすぎます（1MBまで）。必要な行だけをコピーして貼り付けてください。";
+    else {
+      try { el.bulkIn.value = decodeText(await f.arrayBuffer()); el.fname.textContent = f.name; }
+      catch (e) { fileNote = "ファイルを読み込めませんでした。CSV（.csv）のファイルか確かめて、もう一度選んでください。"; }
+    }
+    renderPreview();
+  }
+  el.file.addEventListener("change", () => { readFile(el.file.files[0]); el.file.value = ""; });
+  el.bulkIn.addEventListener("dragover", (e) => { if (e.dataTransfer?.types?.includes("Files")) { e.preventDefault(); el.bulkIn.classList.add("is-over"); } });
+  el.bulkIn.addEventListener("dragleave", () => el.bulkIn.classList.remove("is-over"));
+  el.bulkIn.addEventListener("drop", (e) => {
+    const f = e.dataTransfer?.files?.[0];
+    el.bulkIn.classList.remove("is-over");
+    if (!f) return; // 文字のドロップは、ふつうの貼り付けとして入れる
+    e.preventDefault();
+    readFile(f);
+  });
   el.mode.addEventListener("click", () => setMode(ui.mode === "bulk" ? "one" : "bulk"));
   function setMode(mode) {
     ui.mode = mode;

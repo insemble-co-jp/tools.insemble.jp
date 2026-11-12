@@ -11,7 +11,7 @@ const FAQ = [
   { q: "データが消えることはありますか？", a: "あります。ブラウザの「閲覧履歴データの削除」などでサイトのデータを消すと、入れた締切も一緒に消えます。シークレットウィンドウ（履歴を残さない画面）で使った場合は、ウィンドウを閉じると消えます。大事な締切は、ときどき「Excelに書き出す（バックアップにも）」でファイルに保存しておくと、消えても手元に残ります。" },
   { q: "日付だけを入れたとき、期限は何時になりますか？", a: "その日の23時59分59秒までとして数えます。たとえば10月10日とだけ入れると、10月10日が終わる瞬間までが残り時間になります。時刻を決めたいときは、「12:00」「18:00」などのボタンを押すか、時刻の欄で選んでください。時刻は、お使いの端末の時計（タイムゾーン＝地域ごとの標準時）に合わせています。" },
   { q: "入れたあとで、締切の名前や期限の日時を変えられますか？", a: "変えられます。締切のカードの名前や、今日やることの文字を押すと、その場で書き換えられます。Enter キーを押すか、ほかの場所を押すと保存し、Esc キーを押すと元の名前に戻ります。期限の日時は、カードの右上にある日時を押すと、入力欄が開いて変えられます。「明日」「18:00」などのボタンも使えます。完了にした締切は、「戻す」で未完了にしてから変えてください。" },
-  { q: "Notion・Excelとのあいだで、締切をまとめて出し入れできますか？", a: "できます。入れるときは、「締切を追加」を押し、入力欄の上にある「Notion・Excelからまとめて貼り付け」に切り替えて、1行に1件ずつ「タスク名」と「期限」を貼り付けてください。3列目に担当（誰の締切か）があれば、それも読み取ります。Notionの表は、見出しの行（「名前」「担当者」「期限」など）ごとコピーして貼ると、列の名前から担当と期限を見分け、ステータスなどほかの列は読み飛ばします。期限は「2026-10-10」「2026/10/10」「10月10日」などの書き方で入れられ、後ろに「18:00」のように時刻も付けられます。期間（11月20日 → 11月22日）は、終わりの日を期限にします。持ち出すときは、ツールの下の「コピーしてNotion・Excelに貼る」で「タスク名」「期限」（人の締切があれば「担当」も）の列をコピーできます。残り日数が自動で変わるファイルにしたいときは、「Excelに書き出す（バックアップにも）」を押してください。", cta: { label: "まとめて貼り付ける", do: "bulk" } },
+  { q: "Notion・Excelとのあいだで、締切をまとめて出し入れできますか？", a: "できます。入れるときは、「締切を追加」を押し、入力欄の上にある「Notion・Excelからまとめて貼り付け」に切り替えて、1行に1件ずつ「タスク名」と「期限」を貼り付けてください。3列目に担当（誰の締切か）があれば、それも読み取ります。Notionの表は、見出しの行（「名前」「担当者」「期限」など）ごとコピーして貼ると、列の名前から担当と期限を見分け、ステータスなどほかの列は読み飛ばします。期限は「2026-10-10」「2026/10/10」「10月10日」などの書き方で入れられ、後ろに「18:00」のように時刻も付けられます。期間（11月20日 → 11月22日）は、終わりの日を期限にします。持ち出すときは、ツールの下の「コピーしてNotion・Excelに貼る」で「タスク名」「期限」（人の締切があれば「担当」も）の列をコピーできます。残り日数が自動で変わるファイルにしたいときは、「Excelに書き出す（バックアップにも）」を押してください。このファイルは「まとめて貼り付け」の「CSVファイルを選ぶ」から読み戻せて、完了の印も戻ります。すでに入っている締切は、二重には入りません。", cta: { label: "まとめて貼り付ける", do: "bulk" } },
   { q: "チームメンバーの締切も、一緒に数えられますか？", a: "数えられます。締切を入れるときに「誰の締切」に名前を入れると、カードに名前が付きます。空欄のままなら自分の締切です。人の締切があると、一覧の上に「すべて」「自分」と名前ごとのボタンが出て、押した人の締切だけに絞り込めます。絞り込むと、上の1行のお知らせ・ミニ表示・タブ名も、その人の締切だけで数えます。入れた名前も、このブラウザの中にだけ保存し、メンバーには送られません。" },
   { q: "パソコンに常に表示しておけますか？", a: "できます。Chrome や Edge では、ツールのいちばん上にある「アプリとして置く」を押すと、ブラウザとは別のウィンドウで開くアプリとして置けます。画面の隅に置いて「ミニ」を押すと、ウィンドウが締切を1行ずつ並べた小さな表示に縮み、もう一度押すと元の大きさに戻ります。デスクトップやタスクバーのアイコンを右クリックすると、「締切を追加」「今日やることを書く」をすぐに開けます。Mac の Safari では、macOS 14 以降なら、メニューバーの「ファイル」から「Dockに追加」を選ぶと置けます。iPhone・Android では、共有メニューやブラウザのメニューにある「ホーム画面に追加」から置けます。置き方が分からないときは、「アプリとして置く」を押すと、お使いのブラウザでの手順を表示します。Firefox のパソコン版はアプリとして置けないため、Chrome・Edge・Safari で開いてください。置いたあとは、ネットにつながっていなくても使えます。", cta: { label: "アプリとして置く", do: "place" } },
   { q: "締切の時間になったら、通知は来ますか？", a: "通知や音は出しません。作業の邪魔をしないよう、画面の中で静かに知らせます。ツールの上の1行のお知らせと、締切のカードの色が、締切が近づくにつれて変わります。ブラウザのタブ名にも「あと3時間 | あと何日？」のように、いちばん近い締切までの残り時間が出るので、ほかのタブで作業していても目に入ります。期日の当日にメールで知らせてほしいときは、同じインセンブルがつくっている「きじかん」をお使いください。使い分けは、この「よくある質問」のすぐ上にある、きじかんの紹介をご覧ください。" },
@@ -176,9 +176,17 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
               <p class="an-kj" id="an-kj" hidden>1か月以上先の期日は、インセンブルの「<a href={KIJICAN("composer")} target="_blank" rel="noopener">きじかん</a>」に登録しておくと、当日にメールで知らせてくれます。</p>
             </div>
             <div class="an-bulk" id="an-bulk" hidden>
-              <label class="an-blabel" for="an-bulk-in">1行に1件ずつ、「タスク名」と「期限」をタブかカンマで区切って貼り付けてください。3列目に担当を入れると、人ごとに分けられます。</label>
+              <label class="an-blabel" for="an-bulk-in">1行に1件ずつ、「タスク名」と「期限」をタブかカンマで区切って貼り付けてください。3列目に担当を入れると、人ごとに分けられます。CSVファイルも読み込めます。</label>
               <pre class="an-eg" id="an-eg" aria-label="入力の例"></pre>
-              <textarea class="an-bta" id="an-bulk-in" rows="5" spellcheck="false" placeholder="ここに貼り付け"></textarea>
+              <textarea class="an-bta" id="an-bulk-in" rows="5" spellcheck="false" placeholder="ここに貼り付け（CSVファイルをドロップしても読み込めます）"></textarea>
+              <div class="an-frow">
+                <label class="an-file">
+                  <input type="file" id="an-file" accept=".csv,.tsv,.txt,text/csv,text/plain" />
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 8V1.8M3.4 4.3 6 1.7l2.6 2.6M2 10.2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>CSVファイルを選ぶ
+                </label>
+                <span class="an-fname" id="an-fname" aria-live="polite"></span>
+              </div>
+              <p class="an-fhint">「Excelに書き出す」で保存したファイルなら、完了の印もそのまま戻ります。すでに入っている締切は、二重には入りません。</p>
               <p class="an-bres" id="an-bres" aria-live="polite"></p>
             </div>
             <div class="an-cfoot">
@@ -227,7 +235,7 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
           <button type="button" class="an-ghost" id="an-tsv" title="まだ完了していない締切の「タスク名」と「期限」を、タブ区切りでコピーします">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M8.5 3.5V2.5a1 1 0 0 0-1-1h-5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h1" stroke="currentColor" stroke-width="1.3"/></svg>コピーしてNotion・Excelに貼る
           </button>
-          <button type="button" class="an-ghost" id="an-csv" title="残り日数を計算する関数入りのCSVファイル（Excelで開ける表のファイル）を保存します。バックアップにも使えます">
+          <button type="button" class="an-ghost" id="an-csv" title="残り日数を計算する関数入りのCSVファイル（Excelで開ける表のファイル）を保存します。「まとめて貼り付け」の「CSVファイルを選ぶ」から読み戻せるので、バックアップにも使えます">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1.5v6.2M3.4 5.2 6 7.8l2.6-2.6M2 10.2h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Excelに書き出す（バックアップにも）
           </button>
         </div>
@@ -348,6 +356,14 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
   .an-eg{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;line-height:1.7;color:#4E5E61;background:#F4F7F7;border-radius:10px;padding:8px 12px;white-space:pre;overflow-x:auto;tab-size:14}
   .an-bta{width:100%;min-height:7.5em;resize:vertical;border:1px solid #CFDADC;border-radius:11px;padding:10px 12px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;line-height:1.7;color:#1B2A2D;background:#fff}
   .an-bta:focus{outline:none;border-color:#2E6A74;box-shadow:0 0 0 3px #D9ECEA}
+  .an-bta.is-over{border-color:#2E6A74;box-shadow:0 0 0 3px #D9ECEA;background:#F4FAF9}
+  .an-frow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:-6px}
+  .an-file{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;border:1px solid #CFDADC;border-radius:10px;font-size:12.5px;font-weight:700;color:#2E6A74;background:#fff;cursor:pointer}
+  .an-file:hover{border-color:#2E6A74;background:#F4FAF9}
+  .an-file:focus-within{outline:2px solid #2E6A74;outline-offset:2px}
+  .an-file input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .an-fname{font-size:12px;color:#617275;overflow-wrap:anywhere}
+  .an-fhint{font-size:12px;line-height:1.6;color:#617275;margin-top:-8px}
   .an-bres{font-size:12.5px;line-height:1.6;color:#4E5E61}
   .an-bres b{color:#1B2A2D}
   .an-bres .is-bad{color:#C2410C}
@@ -549,6 +565,7 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
   /* タッチ操作では押せる大きさを確保。入力欄は 16px（iOS で拡大されないように） */
   @media (pointer:coarse){
     .an-act,.an-hbtn,.an-chip,.an-pick,.an-ghost{min-height:40px}
+    .an-file{min-height:44px}
     .an-act.is-del{width:40px}
     .an-x{width:36px;height:36px}
     .an-chk{position:relative}
