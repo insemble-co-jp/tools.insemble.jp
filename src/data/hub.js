@@ -13,6 +13,7 @@ const HUB = (function () {
     { id: "web", label: "Web制作・SEO", note: "検索とシェアの土台を点検する" },
     { id: "file", label: "ファイル・変換", note: "PDFや画像を、使える形に取り出す" },
     { id: "decide", label: "決める・分ける", note: "席・順番・チーム分けを、1クリックで" },
+    { id: "play", label: "あそぶ", note: "写真や絵で、カードゲームを手作り" },
     { id: "office", label: "Excel・業務", note: "入力したものを、そのまま仕事の書類に" },
     { id: "other", label: "その他", note: "文章の整形や、開発まわりの小さな変換" },
   ];
@@ -41,6 +42,8 @@ const HUB = (function () {
     { slug: "seat", name: "席順メーカー", desc: "参加者の名前を入れると、卓ごとの座席表ができる。画像で保存したり、文字でコピーしたりして配れる。", cat: "decide", icon: "seat", status: "live", hot: 2, added: "2026-09-30", isNew: true, kw: "席替え 席決め 飲み会 宴会 懇親会 忘年会 新年会 歓迎会 送別会 座席表 テーブル 幹事", rel: ["group", "roulette"] },
     { slug: "roulette", name: "イベント用ルーレット", desc: "名前を入れて回すと、1人をランダムに選ぶ。当たった人は自動で外れるので、順番決めや抽選に使える。", cat: "decide", icon: "wheel", status: "live", hot: 3, added: "2026-09-30", isNew: true, kw: "抽選 くじ 順番 当番 発表者 司会 景品 ランダム ビンゴ 忘年会 役員決め", rel: ["seat", "group"] },
     { slug: "group", name: "グループ分けメーカー", desc: "名前を入れると、人数をそろえてグループに分ける。リーダーの固定や、一緒にしない組み合わせも指定できる。", cat: "decide", icon: "users", status: "live", hot: 4, added: "2026-09-30", isNew: true, kw: "チーム分け 班分け 研修 ワークショップ 学校 ランダム 組み分け グループディスカッション gd 面接官 ファシリテーター リーダー 男女 グループワーク 新人研修", rel: ["seat", "roulette"] },
+
+    { slug: "memory-game", name: "神経衰弱メーカー", kind: "写真でつくるカードゲーム", desc: "写真や絵を選ぶと、神経衰弱がその場で遊べる。印刷して、手作りのカードにもできる。", cat: "play", icon: "cards", status: "live", hot: 10, added: "2026-10-26", isNew: true, kw: "神経衰弱 メモリーゲーム 絵合わせ カード 手作り 自作 印刷 写真 子ども 知育 保育園 幼稚園 家族 おうち遊び トランプ", rel: ["roulette"] },
 
     { slug: "schedule-excel", name: "スケジュール→Excelメーカー", desc: "予定を入れると、そのまま配れるExcelの予定表ができる。進行表や担当別の形でも書き出せる。", cat: "office", icon: "sheet", status: "live", hot: 6, added: "2026-09-30", isNew: true, kw: "エクセル xlsx csv 予定表 進行表 タイムテーブル 工程表 スケジュール表 日程表 研修 撮影 イベント", rel: ["pdf-extract"] },
 

@@ -1,0 +1,206 @@
+---
+/* 神経衰弱メーカー：写真や絵で、神経衰弱を画面で遊ぶ／印刷して手作りカードにする。動きは src/scripts/tools/memory-game.js
+   写真はブラウザの中だけで扱う（サーバーには送らない） */
+import ToolPage from "../../layouts/ToolPage.astro";
+import Icon from "../../components/Icon.astro";
+import Stepper from "../../components/tools/Stepper.astro";
+import { PICTURE_SETS } from "../../data/picture-sets.js";
+
+const FAQ = [
+  { q: "写真はどこかに送られますか？", a: "送られません。写真はお使いのブラウザの中だけで、カードの形に切り抜いて使います。運営者のサーバーや外部のサービスに届くことはなく、ページを閉じると消えます。" },
+  { q: "写真は何枚あればいいですか？", a: "2枚から遊べます。1枚の写真から同じカードが2枚できるので、8枚あれば16枚のカードになります。小さな子どもには4〜6ペア、慣れてきたら8〜12ペアくらいがちょうどよい難しさです。写真は最大24枚（48枚のカード）まで使えます。" },
+  { q: "写真がなくても遊べますか？", a: "遊べます。「どうぶつ」「くだもの・やさい」「のりもの」「うみのいきもの」の絵柄を選ぶと、写真なしですぐに始められます。印刷もできます。" },
+  { q: "印刷するときのコツは？", a: "A4の紙に、6cm角のカードが12枚ずつ並びます。厚めの紙（はがき用紙など）に刷ると、裏から絵が透けにくく、めくりやすくなります。「うら面も印刷する」をオンにすると、カードの裏の模様も刷れるので、両面印刷するか、2枚を貼り合わせてください。印刷の画面で「PDFに保存」を選べば、PDFにしてコンビニなどで印刷することもできます。" },
+  { q: "何人で遊べますか？", a: "画面で遊ぶときは、「ひとりで」と「みんなで（2〜4人）」から選べます。「ひとりで」は、全部そろえるまでにめくった回数と時間を表示します。「みんなで」は、順番にめくって、そろえた人がもう一回めくれるふつうのルールです。誰の番かと、それぞれがそろえた数を表示し、最後に勝ち負けを出します。" },
+  { q: "タブレットで遊べますか？", a: "遊べます。「大きく表示」を押すと、カードだけを画面いっぱいに出せるので、タブレットを机に置いてみんなで囲むのにも向いています。" },
+  { q: "写真の顔が切れてしまいます", a: "写真は、真ん中を正方形に切り抜いてカードにします。顔や見せたいものが真ん中にある写真を選ぶか、先にスマホの写真アプリで正方形に切り抜いてから入れてください。" },
+];
+
+const SCENES = {
+  intro: "神経衰弱は、記憶力と集中力を使う、子どもから大人まで遊べるゲームです。家族やペット、旅行の写真でカードを作ると、それだけで特別なゲームになります。画面でそのまま遊ぶことも、印刷して手作りのカードにすることもできます。",
+  groups: [
+    {
+      h: "おうち・家族で",
+      items: [
+        ["家族の写真で、子どもと遊べるカードを作りたい", "写真を入れるだけで、同じ写真が2枚ずつのカードになります。スマホやタブレットで、その場ですぐに遊べます。"],
+        ["雨の日や長い休みに、プリンターで遊び道具を作りたい", "印刷すると、A4の紙に切り取り線つきのカードが並びます。厚めの紙に刷れば、何度も遊べるカードになります。"],
+        ["おじいちゃん・おばあちゃんと、孫の写真で遊びたい", "孫や家族の写真でカードを作れば、会話のきっかけにもなります。大きく表示すれば、タブレットでも見やすくなります。"],
+        ["写真がないけれど、すぐに遊ばせたい", "どうぶつ・くだもの・のりもの・うみのいきものの絵柄から選べば、写真なしですぐに始められます。"],
+      ],
+    },
+    {
+      h: "保育園・幼稚園・学校",
+      items: [
+        ["クラスの活動で使う、手作りのカードゲームがほしい", "行事の写真やクラスで育てている生きものの写真から、オリジナルのカードを作って印刷できます。"],
+        ["年齢に合わせて、難しさを変えたい", "ペアの数を2〜24まで変えられます。小さな子は少ないペアから始めて、慣れたら増やせます。"],
+        ["ことばや英語を覚える教材にしたい", "覚えたいものの写真や絵でカードを作れば、遊びながら名前を覚える教材になります。"],
+      ],
+    },
+    {
+      h: "イベント・職場",
+      items: [
+        ["子ども会やお祭りで、ちょっとしたゲームコーナーを作りたい", "地域の名所や行事の写真でカードを作ると、その場所ならではのゲームになります。"],
+        ["新しいメンバーの顔と名前を、楽しく覚えたい", "顔写真で神経衰弱を作れば、遊んでいるうちに顔を覚えられます。写真はどこにも送らないので、社内の写真でも安心です。"],
+        ["商品やサービスを、展示会で印象に残したい", "自社の商品写真でカードを作れば、ブースで遊べる小さなゲームになります。"],
+      ],
+    },
+  ],
+};
+---
+<ToolPage
+  slug="memory-game"
+  title="写真で神経衰弱を手作り・印刷｜神経衰弱メーカー｜insemble tools"
+  description="家族の写真や好きな絵で、神経衰弱のカードを作れる無料ツールです。スマホやタブレットでそのまま遊べて、2〜4人で対戦もできます。印刷すれば、切り取り線つきの手作りカードに。写真はブラウザの中だけで処理し、送信しません。"
+  ogTitle="神経衰弱メーカー｜家族の写真で、神経衰弱を手作り"
+  h1="神経衰弱メーカー｜写真で神経衰弱を作って遊べる無料ツール"
+  lead={["家族の写真が、", "神経衰弱", "になる。"]}
+  sub="写真や絵を選ぶだけで、画面でそのまま遊べます。印刷すれば、手作りのカードにもなります。写真はどこにも送りません。"
+  meta={[["check", "端末内で処理"], ["check", "写真は送信しません"]]}
+  steps={[
+    { t: "写真か絵柄を選ぶ", d: "「写真」を選んで、使いたい写真を入れます（2〜24枚）。写真がなければ、どうぶつなどの絵柄を選んでください。" },
+    { t: "ペアの数と遊び方を決める", d: "カードの組の数と、「ひとりで」か「みんなで（2〜4人）」かを選びます。小さな子どもには、4〜6ペアくらいがおすすめです。" },
+    { t: "遊ぶ・印刷する", d: "「画面で遊ぶ」を押すと、カードが並んでその場で遊べます。「印刷する」を押すと、A4に切り取り線つきのカードを刷れます。" },
+  ]}
+  scenes={SCENES}
+  faq={FAQ}
+  about={[
+    ["しくみ", "入れた写真の真ん中を正方形に切り抜き、同じものを2枚ずつ用意して、ランダムに並べます。並べ方には、ブラウザに備わっている暗号用の乱数を使います。"],
+    ["保存", "写真と遊んだ結果は、どこにも送らず、保存もしません。ページを閉じると消えます。"],
+    ["印刷", "A4の紙に、6cm角のカードを12枚ずつ並べます。ブラウザの印刷画面から「PDFに保存」も選べます。"],
+  ]}
+  relatedSub="遊ぶ順番は、ルーレットで決めることもできます。"
+  corp="たとえば「自社の商品写真で、展示会で配れるオリジナルのカードゲームを作る」ような、目的に合わせた専用ツールもつくれます。"
+  updated="2026-10-26"
+>
+  <div class="tp-panel">
+    <div class="tp-split">
+      <div class="tp-in">
+        <div class="fld">
+          <span class="fld-l">カードの絵柄</span>
+          <div class="pick" data-pick="src" role="group" aria-label="カードの絵柄">
+            <button type="button" data-v="photo" aria-pressed="true">写真</button>
+            {PICTURE_SETS.map((s) => <button type="button" data-v={s.id} aria-pressed="false">{s.label}</button>)}
+          </div>
+        </div>
+        <div class="mm-photo" id="mm-photo">
+          <label class="drop sm" id="mm-drop">
+            <input type="file" id="mm-file" accept="image/*" multiple />
+            <span class="drop-ic"><Icon name="upload" size={22} /></span>
+            <span class="drop-t">写真をここにドロップ</span>
+            <span class="drop-d">または、タップして選ぶ（何枚でも）</span>
+          </label>
+          <ul class="pic-list" id="mm-list" hidden></ul>
+          <div class="msgs" id="mm-pic-msgs"></div>
+        </div>
+        <div class="sets">
+          <div class="set">
+            <span class="set-l">ペアの数<small id="mm-sum" aria-live="polite"></small></span>
+            <Stepper id="mm-pairs" label="ペアの数" value={8} min={2} max={24} />
+          </div>
+          <div class="set">
+            <span class="set-l">遊び方<small id="mm-mode-d" aria-live="polite">ひとりで全部そろえる。めくった回数と時間が出ます</small></span>
+            <div class="pick" data-pick="mode" role="group" aria-label="遊び方">
+              <button type="button" data-v="solo" aria-pressed="true">ひとりで</button>
+              <button type="button" data-v="vs" aria-pressed="false">みんなで</button>
+            </div>
+          </div>
+          <div class="set" id="mm-players" hidden>
+            <span class="set-l">人数</span>
+            <div class="pick" data-pick="players" role="group" aria-label="人数">
+              <button type="button" data-v="2" aria-pressed="true">2人</button>
+              <button type="button" data-v="3" aria-pressed="false">3人</button>
+              <button type="button" data-v="4" aria-pressed="false">4人</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-lg btn-block" id="mm-start"><Icon name="play" size={18} />画面で遊ぶ</button>
+        <div class="mm-printrow">
+          <button type="button" class="btn btn-ghost" id="mm-print"><Icon name="print" size={17} />印刷する</button>
+          <label class="chk"><input type="checkbox" id="mm-back" />うら面も印刷する</label>
+        </div>
+        <div class="msgs" id="mm-msgs"></div>
+      </div>
+
+      <div class="tp-out" id="mm-out">
+        <div class="empty">
+          <div class="re-ic"><Icon name="cards" size={22} tool /></div>
+          <p class="re-t">ここにカードが並びます</p>
+          <p class="re-d">写真か絵柄を選んで「画面で遊ぶ」を押してください。</p>
+        </div>
+        <div class="mm-stage" id="mm-stage" hidden>
+          <div class="mm-head">
+            <div class="mm-status" id="mm-status"></div>
+            <div class="acts">
+              <button type="button" class="btn btn-ghost btn-sm" id="mm-full" aria-pressed="false"><Icon name="expand" size={15} /><span>大きく表示</span></button>
+            </div>
+          </div>
+          <div class="mm-wrap">
+            <div class="mm-board" id="mm-board"></div>
+            <div class="mm-end" id="mm-end" hidden>
+              <div class="mm-end-body" role="status"></div>
+              <button type="button" class="btn btn-primary" id="mm-again"><Icon name="shuffle" size={17} />もう一回</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ToolPage>
+
+<script>
+  import "../../scripts/tools/memory-game.js";
+</script>
+
+<style is:global>
+  .mm-photo{display:flex;flex-direction:column;gap:10px}
+  .mm-photo[hidden],#mm-players[hidden]{display:none}
+  .mm-printrow{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
+  .mm-printrow .btn{min-height:44px}
+  .mm-stage{display:flex;flex-direction:column;gap:var(--g-sm)}
+  .mm-stage[hidden]{display:none}
+  .mm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .mm-status{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--ink-2)}
+  .mm-st b{font-family:var(--font-display);font-size:18px;color:var(--ink);margin:0 2px}
+  .mm-pl{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--line);font-weight:700;font-size:14px;color:var(--ink-2);transition:.2s}
+  .mm-pl i{width:10px;height:10px;border-radius:99px;background:var(--hue)}
+  .mm-pl b{font-family:var(--font-display);font-size:17px;color:var(--ink);margin-left:4px}
+  .mm-pl.on{border-color:var(--hue);box-shadow:0 0 0 2px var(--hue) inset;color:var(--ink)}
+  .mm-wrap{position:relative}
+  .mm-board{display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:clamp(5px,1.2vw,10px)}
+  @media(max-width:560px){.mm-board{grid-template-columns:repeat(var(--cols-sm,4),minmax(0,1fr))}}
+  .mm-card{aspect-ratio:1/1;perspective:700px;container-type:inline-size;border-radius:12px;padding:0}
+  .mm-card:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+  .mm-in{position:relative;display:block;width:100%;height:100%;transition:transform .38s cubic-bezier(.3,.7,.3,1);transform-style:preserve-3d}
+  .mm-card.up .mm-in{transform:rotateY(180deg)}
+  .mm-back,.mm-face{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .mm-back{background:radial-gradient(circle at 50% 50%,var(--primary) 0 9%,transparent 9.5%),radial-gradient(var(--primary-soft-2) 1.6px,transparent 1.8px) 0 0/11px 11px,var(--paper);border:1.5px solid var(--line-2)}
+  .mm-card:not(.up):hover .mm-back{border-color:var(--primary)}
+  .mm-face{transform:rotateY(180deg);background:#fff;border:1.5px solid var(--line-2);display:grid;place-items:center}
+  .mm-face .face-emoji{font-size:62cqw}
+  .mm-card.got .mm-face{border:3px solid var(--hue);box-shadow:0 0 0 2px #fff inset}
+  .mm-card:disabled{cursor:default}
+  @media(prefers-reduced-motion:reduce){.mm-in{transition:none}}
+  .mm-end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;background:rgba(255,255,255,.9);border-radius:12px;animation:tpIn .35s cubic-bezier(.2,.9,.3,1.2) both}
+  .mm-end[hidden]{display:none}
+  .mm-end-t{font-family:var(--font-display);font-weight:800;font-size:clamp(22px,4vw,30px);color:var(--ink)}
+  .mm-end-d{font-size:16px;color:var(--ink-2);margin-top:4px}
+  .mm-rank{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .mm-rank li{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink-2)}
+  .mm-rank i{width:10px;height:10px;border-radius:99px;background:var(--hue)}
+  .mm-rank b{font-family:var(--font-display);color:var(--ink);margin-left:6px}
+  @media(prefers-reduced-motion:reduce){.mm-end{animation:none}}
+  /* 大きく表示：カードが画面の高さに収まるように */
+  .mm-stage:fullscreen{background:#fff;padding:var(--g-md);justify-content:center;overflow:auto}
+  .mm-stage:fullscreen .mm-wrap{width:min(100%,calc((100vh - 120px) * var(--ratio,1)));margin:0 auto}
+
+  /* 印刷：A4 に 6cm 角を 3列×4段。点線は切り取り線 */
+  @media print{
+    .mm-pr{display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+    .mm-pr-grid{display:grid;grid-template-columns:repeat(3,60mm);grid-auto-rows:60mm;gap:4mm;margin-top:4mm}
+    .mm-pr-card{border:0.3mm dashed #9aa5ab;padding:2.5mm;container-type:inline-size}
+    .mm-pr-face{width:100%;height:100%;border-radius:3mm;overflow:hidden;display:grid;place-items:center;border:0.3mm solid #dde2e5}
+    .mm-pr-face .face-emoji{font-size:62cqw}
+    .mm-pr-back{width:100%;height:100%;border-radius:3mm;background:radial-gradient(circle at 50% 50%,#1f6f7c 0 9%,transparent 9.5%),radial-gradient(#9fd0d6 0.5mm,transparent 0.6mm) 0 0/3.6mm 3.6mm,#f3f5f6}
+    .mm-pr-foot{font-size:8pt;color:#5e6970;margin-bottom:2mm}
+  }
+</style>
