@@ -197,10 +197,12 @@ export function parseDate(text, now) {
 function splitLine(line) {
   if (line.includes("\t")) return line.split("\t");
   if (/[,，]/.test(line)) {
-    // かんたんな CSV（"…" で囲んだカンマは区切らない）
+    // かんたんな CSV（"…" で囲んだカンマは区切らない。囲みの中の "" は " 1文字）
     const out = []; let cur = "", inQ = false;
-    for (const ch of line.replace(/，/g, ",")) {
-      if (ch === '"') inQ = !inQ;
+    const src = line.replace(/，/g, ",");
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '"') { if (inQ && src[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
       else if (ch === "," && !inQ) { out.push(cur); cur = ""; }
       else cur += ch;
     }
@@ -216,17 +218,22 @@ function splitLine(line) {
 const H_WHO = /担当|誰|メンバー|assign|owner|person/i;
 const H_DUE = /期限|期日|日付|日時|締切日|〆切日|due|date|deadline/i;
 const H_TITLE = /タスク|件名|タイトル|名前|名称|締切|〆切|案件|やること|^(?:name|title|task)$/i;
+/* 「完了」の列（「Excelに書き出す」の CSV など）。「状態」の列は関数なので見ない */
+const H_DONE = /^(?:完了|済|済み|完了済み|done|completed)$/i;
+const DONE_V = /^(?:済|済み|完了|完了済み|done|true|yes|✓|✔|☑|x|1)$/i;
 function headerMap(cells, now) {
   if (cells.length < 2 || cells.some((c) => c.length > 20 || parseDate(c, now))) return null;
-  const m = { who: -1, due: -1, title: -1 };
+  const m = { who: -1, due: -1, title: -1, done: -1 };
   cells.forEach((c, j) => {
     if (m.who < 0 && H_WHO.test(c)) m.who = j;
     else if (m.due < 0 && H_DUE.test(c)) m.due = j;
     else if (m.title < 0 && H_TITLE.test(c)) m.title = j;
+    else if (m.done < 0 && H_DONE.test(c)) m.done = j;
   });
   return m.who >= 0 || m.due >= 0 || m.title >= 0 ? m : null;
 }
-const cut = (s, n) => s.slice(0, n).trim();
+// 書き出すときに数式よけで付けた先頭の ' を外す（'=A1 → =A1）
+const cut = (s, n) => s.replace(/^'(?=[=+\-@])/, "").slice(0, n).trim();
 export function parseBulk(text, now) {
   const ok = [], bad = [];
   let head = null;
@@ -243,7 +250,7 @@ export function parseBulk(text, now) {
       let at = head.due;
       if (!due) for (let j = all.length - 1; j >= 0; j--) { if (j === head.who || j === head.title) continue; const t = parseDate(all[j], now); if (t) { due = t; at = j; break; } }
       const title = cut(head.title >= 0 ? get(head.title) : all.find((c, j) => c && j !== at && j !== head.who) || "", MAX_TEXT);
-      if (due && title) ok.push({ title, dueDate: due, who: cut(get(head.who), MAX_WHO) });
+      if (due && title) ok.push({ title, dueDate: due, who: cut(get(head.who), MAX_WHO), done: DONE_V.test(get(head.done)) });
       else bad.push({ line: i + 1, text: line.slice(0, 40) });
       return;
     }
@@ -266,6 +273,17 @@ export function parseBulk(text, now) {
   });
   return { ok, bad };
 }
+
+/* ---------- CSV ファイルの読み込み ----------
+   「Excelに書き出す」の CSV（UTF-8）も、日本語版の Excel で保存し直した CSV（Shift_JIS）も読めるように、
+   UTF-8 で読めなければ Shift_JIS で読み直す */
+export const MAX_FILE = 1024 * 1024; // 1MB（締切 300件には十分）
+export function decodeText(buf) {
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(buf).replace(/^\uFEFF/, ""); }
+  catch (e) { return new TextDecoder("shift_jis").decode(buf); }
+}
+/** すでにある締切と同じもの（名前・期限・担当が同じ）。バックアップを読み戻したときに二重にしない */
+export const sameKey = (d) => `${d.title}\n${d.dueDate}\n${d.who || ""}`;
 
 /* ---------- 保存データ：読み込み・古い形の変換・壊れたものの除外 ---------- */
 const str = (v) => (typeof v === "string" ? v.trim().slice(0, MAX_TEXT) : "");
