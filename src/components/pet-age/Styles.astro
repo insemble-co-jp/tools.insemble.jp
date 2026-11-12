@@ -1,0 +1,108 @@
+<!-- ペット年齢換算の3ページで共通の見た目（接頭辞 .pa-）。JS で差し込む結果にも効くよう is:global。
+     色・余白はトークンで。影は主役のパネル（.tp-panel）だけで、結果の中は罫線で区切る -->
+<style is:global>
+  /* ---------- 入力 ---------- */
+  .pa-fs{border:none;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .pa-fs[hidden],.pa-when[hidden]{display:none}
+  .pa-fs legend{padding:0;margin-bottom:8px}
+  .pa-opts{display:flex;flex-wrap:wrap;gap:8px}
+  .pa-opt{position:relative;flex:1 1 auto;min-width:0}
+  .pa-opt input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+  .pa-opt span{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:8px 14px;border:1.5px solid var(--line-2);border-radius:12px;background:#fff;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink-2);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+  .pa-opt span:hover{border-color:var(--primary)}
+  /* 選んだものは、色だけでなくチェックの印と太い枠でも示す */
+  .pa-opt .pa-on{display:none}
+  .pa-opt input:checked+span{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-ink);box-shadow:inset 0 0 0 1.5px var(--primary)}
+  .pa-opt input:checked+span .pa-on{display:inline}
+  .pa-opt input:focus-visible+span{outline:3px solid var(--primary);outline-offset:2px}
+  .pa-age{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--g-xs)}
+  .pa-unit{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;color:var(--ink)}
+  .pa-unit .inp{min-width:0}
+  .pa-err{font-size:14px;font-weight:700;line-height:1.6;color:var(--err)}
+  .pa-err:empty{display:none}
+  .pa .fld-hint{line-height:1.7}
+  .pa .more>summary{font-size:15px}
+  .pa-reset{align-self:center;min-height:44px}
+
+  /* ---------- 結果 ---------- */
+  .pa-res .out-head{margin-bottom:0}
+  .pa-res .out-t{font-size:22px;overflow-wrap:anywhere}
+  .pa-tag{display:inline-block;margin-left:10px;font-family:var(--font-body);font-size:13.5px;font-weight:700;color:var(--ink-2);border:1px solid var(--line-2);border-radius:99px;padding:2px 10px;vertical-align:middle}
+  .pa-facts div{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px}
+  .pa-facts dt{font-weight:700;color:var(--ink)}
+  .pa-facts dd{color:var(--ink-2)}
+  .pa-facts dd b{color:var(--ink);font-size:18px}
+  .pa-facts small{display:block;font-size:14px;color:var(--muted);line-height:1.7}
+  .pa-facts a,.pa-how a{color:var(--primary-ink);text-decoration:underline;text-underline-offset:3px;margin-left:4px}
+  @media(max-width:420px){.pa-facts div{grid-template-columns:1fr}}
+  .pa-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;padding:var(--g-sm) 0;border-bottom:3px solid var(--ink)}
+  .pa-big b{font-family:var(--font-display);font-weight:800;font-size:clamp(64px,13vw,96px);line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pa-big-u{font-family:var(--font-display);font-weight:800;font-size:30px;color:var(--ink)}
+  .pa-big-k{font-size:16px;font-weight:700;color:var(--muted)}
+  .pa-out-range{margin:var(--g-xs) 0;padding:var(--g-sm);background:var(--paper);border-radius:12px;font-size:16px;line-height:1.8;color:var(--ink-2)}
+  .pa-note{display:flex;gap:8px;align-items:flex-start;margin-top:var(--g-sm);font-size:14px;line-height:1.75;color:var(--ink-2)}
+  .pa-note svg{margin-top:4px;color:var(--primary)}
+  .pa-fam,.pa-share{margin-top:var(--g-md);padding-top:var(--g-sm);border-top:3px solid var(--ink)}
+  .pa-h3{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--ink);margin-bottom:var(--g-xs)}
+  .pa-h3 svg{color:var(--primary)}
+  .pa-now,.pa-cross{font-size:16px;line-height:1.85;color:var(--ink-2)}
+  .pa-cross{margin-top:8px}
+  .pa-cross b{color:var(--ink);font-size:18px}
+  .pa-cond{margin-top:var(--g-xs);font-size:14px;color:var(--ink-2)}
+  .pa-cond summary{display:flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font-weight:700;color:var(--primary-ink);list-style:none}
+  .pa-cond summary::-webkit-details-marker{display:none}
+  .pa-cond summary svg{transition:transform .2s}
+  .pa-cond[open] summary svg{transform:rotate(180deg)}
+  .pa-cond ul{padding-left:1.2em;display:flex;flex-direction:column;gap:6px;line-height:1.8}
+  .pa-prev{display:block;width:100%;max-width:360px;height:auto;aspect-ratio:1/1;border:1px solid var(--line);border-radius:12px;margin:var(--g-xs) 0}
+  .pa-prev:not([src]){display:none}
+  .pa-stext{white-space:pre-line;font-size:14px;line-height:1.7;color:var(--ink-2);background:var(--paper);border-radius:10px;padding:10px 12px;margin-bottom:var(--g-xs);overflow-wrap:anywhere}
+  .pa-stext:empty{display:none}
+  .pa-share .acts{margin-bottom:var(--g-xs)}
+  .pa-share .fld-hint{font-size:14px}
+
+  /* ---------- 読みもの ---------- */
+  .pa-prose{max-width:var(--col-read)}
+  .pa-prose p,.pa-prose li{font-size:16px;line-height:1.9;color:var(--ink-2)}
+  .pa-prose p+p,.pa-prose p+ul,.pa-prose ul+p{margin-top:var(--g-xs)}
+  .pa-prose h3{font-family:var(--font-display);font-weight:800;font-size:19px;color:var(--ink);margin:var(--g-lg) 0 var(--g-xs);padding-bottom:8px;border-bottom:3px solid var(--ink)}
+  .pa-prose ul{padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+  .pa-prose strong,.pa-concl{color:var(--ink)}
+  .pa-prose a,.pa-tbl-note a,.pa-cite a{color:var(--primary-ink);text-decoration:underline;text-underline-offset:3px}
+  .pa-concl{font-size:17px;font-weight:700;line-height:1.85;max-width:var(--col-read);margin-bottom:var(--g-sm)}
+  .pa-cite{font-size:14px;line-height:1.75;color:var(--muted);margin-top:var(--g-xs);max-width:var(--col-read)}
+  .pa-dl{max-width:var(--col-read);border-top:1px solid var(--line)}
+  .pa-dl div{display:grid;grid-template-columns:9em minmax(0,1fr);gap:4px 16px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .pa-dl dt{font-weight:700;color:var(--ink);font-size:16px}
+  .pa-dl dd{font-size:16px;line-height:1.85;color:var(--ink-2)}
+  @media(max-width:560px){.pa-dl div{grid-template-columns:1fr}}
+  .pa-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--g-md) var(--g-lg)}
+  .pa-two h3{margin-top:0}
+  @media(max-width:760px){.pa-two{grid-template-columns:minmax(0,1fr)}}
+  .pa-links{margin-top:var(--g-sm);max-width:var(--col-read)}
+
+  /* 早見表 */
+  .pa-tbl-wrap{max-width:var(--col-read);overflow-x:auto;border-top:3px solid var(--ink)}
+  .pa-tbl-wrap:focus-visible{outline:3px solid var(--primary-soft-2);outline-offset:2px}
+  .pa-tbl{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+  .pa-tbl caption{text-align:left;font-weight:700;font-size:14px;color:var(--muted);padding:10px 0}
+  .pa-tbl th,.pa-tbl td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  .pa-tbl thead th{font-size:14px;color:var(--ink);background:var(--paper);vertical-align:bottom}
+  .pa-tbl thead small{display:block;font-weight:500;font-size:12.5px;color:var(--muted)}
+  .pa-tbl tbody th{font-weight:700;color:var(--ink)}
+  .pa-tbl td{color:var(--ink-2)}
+  .pa-mk{color:var(--primary-ink);font-weight:700;margin-left:2px}
+  .pa-na{color:var(--muted)}
+  .pa-stg{font-size:14px}
+  .pa-tbl-note{max-width:var(--col-read);font-size:14px;line-height:1.8;color:var(--muted);margin-top:var(--g-xs)}
+
+  /* 出典 */
+  .pa-src{max-width:var(--col-read);padding-left:1.4em;display:flex;flex-direction:column;gap:var(--g-sm);margin-bottom:var(--g-lg)}
+  .pa-src li{font-size:15px;color:var(--ink-2);line-height:1.75;padding-bottom:var(--g-sm);border-bottom:1px solid var(--line)}
+  .pa-src li::marker{font-weight:700;color:var(--ink)}
+  .pa-src-t{font-weight:700;font-size:16px}
+  .pa-src a{color:var(--primary-ink);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+  .pa-src-d{font-size:14px;color:var(--muted)}
+  .pa-lang{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;color:var(--muted);border:1px solid var(--line-2);border-radius:99px;padding:0 8px;vertical-align:middle}
+  .pa-ops dd{font-size:15px}
+</style>

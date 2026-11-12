@@ -1,0 +1,127 @@
+---
+/* ペット年齢換算の道具（入力 → 結果 → 家族と同い年になる頃 → 共有）。動きは src/scripts/tools/pet-age.js
+   3ページ（/pet-age/・/dog/・/cat/）で共通。species で最初に選んでおく種類を決める（総合ページは未選択）
+   - <form method="dialog">：JS が読めなかったときに押しても、入力が URL やサーバーに送られない（dialog の外では何も起きない）
+   - name はラジオのまとまり（矢印キーで移れる）のためだけに付ける。method="dialog" なので送信には使われない
+   - 計算基準日の初期値（日本時間の今日）は JS が入れる。HTML を書き出した日を固定しないため */
+import Icon from "../Icon.astro";
+import { MODELS, LIMITS } from "../../data/pet-age.js";
+import { rangeText } from "../../lib/pet-age.js";
+
+interface Props {
+  species?: "dog" | "cat";
+}
+const { species } = Astro.props;
+const S = MODELS.dog.small, L = MODELS.dog.large, C = MODELS.cat;
+---
+<div class="tp-panel pa" data-pa data-species={species ?? ""}>
+  <div class="tp-split">
+    <form class="tp-in" id="pa-form" method="dialog" novalidate aria-label="ペットの年齢を入れる">
+      <fieldset class="pa-fs">
+        <legend class="fld-l">ペットの種類</legend>
+        <div class="pa-opts">
+          <label class="pa-opt"><input type="radio" name="pa-species" value="dog" checked={species === "dog"} /><span><Icon name="check" size={15} class="pa-on" />犬</span></label>
+          <label class="pa-opt"><input type="radio" name="pa-species" value="cat" checked={species === "cat"} /><span><Icon name="check" size={15} class="pa-on" />猫</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="pa-fs" id="pa-size-fs" hidden={species !== "dog"}>
+        <legend class="fld-l">犬の体格</legend>
+        <div class="pa-opts">
+          <label class="pa-opt"><input type="radio" name="pa-size" value="small" checked /><span><Icon name="check" size={15} class="pa-on" />{S.label}</span></label>
+          <label class="pa-opt"><input type="radio" name="pa-size" value="large" /><span><Icon name="check" size={15} class="pa-on" />{L.label}</span></label>
+        </div>
+        <p class="fld-hint" id="pa-size-hint">環境省の資料の分け方です。資料に体重の境目は書かれていないため、迷うときは両方の結果を見比べてください。</p>
+      </fieldset>
+
+      <fieldset class="pa-fs">
+        <legend class="fld-l">年齢の入れ方</legend>
+        <div class="pa-opts">
+          <label class="pa-opt"><input type="radio" name="pa-method" value="birth" checked /><span><Icon name="check" size={15} class="pa-on" />生年月日</span></label>
+          <label class="pa-opt"><input type="radio" name="pa-method" value="age" /><span><Icon name="check" size={15} class="pa-on" />年齢で入れる</span></label>
+        </div>
+        <div class="pa-when" data-when="method:birth">
+          <label class="fld">
+            <span class="fld-l">生年月日<span class="fld-hint">迎えた日ではなく、生まれた日</span></span>
+            <input class="inp" type="date" id="pa-birth" autocomplete="off" aria-describedby="pa-err-birth" />
+          </label>
+          <p class="pa-err" id="pa-err-birth" data-err="birth"></p>
+        </div>
+        <div class="pa-when" data-when="method:age" hidden>
+          <div class="pa-age">
+            <label class="fld">
+              <span class="fld-l">年齢</span>
+              <span class="pa-unit"><input class="inp" type="number" id="pa-years" inputmode="numeric" min="0" max={LIMITS.petYears} step="1" placeholder="5" autocomplete="off" aria-describedby="pa-err-years" />歳</span>
+            </label>
+            <label class="fld">
+              <span class="fld-l">月<span class="fld-hint">省略できます</span></span>
+              <span class="pa-unit"><select class="inp" id="pa-months" aria-describedby="pa-err-months">
+                <option value="">わからない</option>
+                {Array.from({ length: 12 }, (_, i) => <option value={String(i)}>{i}</option>)}
+              </select>か月</span>
+            </label>
+          </div>
+          <p class="pa-err" id="pa-err-years" data-err="years"></p>
+          <p class="pa-err" id="pa-err-months" data-err="months"></p>
+        </div>
+      </fieldset>
+
+      <label class="fld">
+        <span class="fld-l">名前<span class="fld-hint">任意・結果と共有画像に出ます</span></span>
+        <input class="inp" type="text" id="pa-name" maxlength="20" autocomplete="off" placeholder="例：こむぎ" />
+      </label>
+
+      <details class="more" id="pa-owner-box">
+        <summary><Icon name="chevron" size={16} />飼い主と比べる（任意）</summary>
+        <div class="more-body">
+          <p class="fld-hint">入れると「同い年になる頃」がわかります。飼い主さんも同じように年を取るものとして比べます。</p>
+          <div class="pa-opts">
+            <label class="pa-opt"><input type="radio" name="pa-owner" value="none" checked /><span><Icon name="check" size={15} class="pa-on" />入れない</span></label>
+            <label class="pa-opt"><input type="radio" name="pa-owner" value="birth" /><span><Icon name="check" size={15} class="pa-on" />生年月日</span></label>
+            <label class="pa-opt"><input type="radio" name="pa-owner" value="age" /><span><Icon name="check" size={15} class="pa-on" />年齢</span></label>
+          </div>
+          <div class="pa-when" data-when="owner:birth" hidden>
+            <label class="fld">
+              <span class="fld-l">飼い主の生年月日</span>
+              <input class="inp" type="date" id="pa-owner-birth" autocomplete="off" aria-describedby="pa-err-owner-birth" />
+            </label>
+            <p class="pa-err" id="pa-err-owner-birth" data-err="owner-birth"></p>
+          </div>
+          <div class="pa-when" data-when="owner:age" hidden>
+            <label class="fld">
+              <span class="fld-l">飼い主のいまの年齢</span>
+              <span class="pa-unit"><input class="inp" type="number" id="pa-owner-years" inputmode="numeric" min="0" max={LIMITS.ownerYears} step="1" placeholder="35" autocomplete="off" aria-describedby="pa-err-owner-years" />歳</span>
+            </label>
+            <p class="pa-err" id="pa-err-owner-years" data-err="owner-years"></p>
+          </div>
+        </div>
+      </details>
+
+      <details class="more">
+        <summary><Icon name="chevron" size={16} />計算する日：<span id="pa-base-label">日本時間の今日</span></summary>
+        <div class="more-body">
+          <label class="fld">
+            <span class="fld-l">計算する日<span class="fld-hint">ふだんは変えなくて大丈夫です</span></span>
+            <input class="inp" type="date" id="pa-base" autocomplete="off" aria-describedby="pa-err-base" />
+          </label>
+          <p class="pa-err" id="pa-err-base" data-err="base"></p>
+        </div>
+      </details>
+
+      <button type="submit" class="btn btn-primary btn-lg btn-block"><Icon name="paw" size={18} />人間の年齢に換算する</button>
+      <div class="msgs" id="pa-msgs"></div>
+      <button type="button" class="btn btn-ghost pa-reset" id="pa-reset"><Icon name="reset" size={15} />リセット</button>
+    </form>
+
+    <div class="tp-out" id="pa-out">
+      <p class="sr-only" id="pa-live" role="status" aria-live="polite"></p>
+      <div id="pa-result">
+        <div class="empty">
+          <div class="re-ic"><Icon name="paw" size={22} tool /></div>
+          <p class="re-t">ここに、人間なら何歳かの目安が出ます</p>
+          <p class="re-d">種類と年齢を入れて「人間の年齢に換算する」を押してください。換算できる範囲は、猫が{rangeText(C)}、小〜中型犬が{rangeText(S)}、大型犬が{rangeText(L)}です。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

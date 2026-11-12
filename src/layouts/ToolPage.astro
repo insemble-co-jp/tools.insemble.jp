@@ -1,7 +1,8 @@
 ---
 /* 端末内で動くツールページの共通の枠（PDFばらし屋・席順メーカーなど）
    OGPチェッカーと同じ2層：上＝道具ゾーン（paper。説明は足さない）／下＝読みもの（白）
-   ツール本体は <slot />。読みもの：使い方 → こんなときに使えます（scenes）→ <slot name="guide" /> → よくある質問 → 関連ツール */
+   ツール本体は <slot />。読みもの：使い方 → こんなときに使えます（scenes）→ <slot name="guide" /> → よくある質問 → <slot name="after-faq" /> → 関連ツール
+   1つのツールに下層ページがあるとき（例：/pet-age/dog/）は、path・name・crumbs を渡す。steps・scenes は省略できる（そのときは目次 toc を渡す） */
 import Base from "./Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -28,8 +29,8 @@ interface Props {
   lead: [string, string, string]; // 大きな一文：[前, 強調, 後]
   sub: string | string[]; // 配列にすると、PCでは区切りごとに改行（スマホでは改行せず、文節で折り返す）
   meta: [icon: string, text: string][]; // パンくず横の「端末内で処理」など
-  steps: { t: string; d: string; cta?: Cta }[];
-  scenes: { intro: string; groups: SceneGroup[] }; // こんなときに使えます（利用シーン）
+  steps?: { t: string; d: string; cta?: Cta }[];
+  scenes?: { intro: string; groups: SceneGroup[] }; // こんなときに使えます（利用シーン）
   faq: { q: string; a: string; cta?: Cta }[];
   about: [string, string, boolean?][]; // 3つ目を true にすると「くわしくは利用規約をご覧ください。」を添える
   corp: string;             // 下の「運営会社」に出す、このツールに合わせた一言
@@ -38,8 +39,15 @@ interface Props {
   updated: string;          // 最終更新日 YYYY-MM-DD
   app?: { manifest: string; icon: string; themeColor: string }; // アプリとして置けるツール（PWA）だけ
   fonts?: string;           // このツールだけで使う Google Fonts の URL
+  /* 下層ページ（例：/pet-age/dog/）のときだけ */
+  path?: string;            // このページのパス。省略すると /<slug>/
+  name?: string;            // パンくずの最後・構造化データの名前。省略すると hub.js の name
+  crumbs?: [string, string][]; // ホームとこのページのあいだのパンくず [名前, パス]
+  toc?: [string, string][]; // 読みものの目次 [#id, ラベル]。省略すると 使い方／こんなときに／よくある質問／関連ツール
+  readTitle?: string;       // 読みものの見出し。省略すると「{name}の使い方」
+  appType?: string;         // schema.org の型。省略すると SoftwareApplication
 }
-const { slug, title, description, ogTitle, h1, lead, sub, meta, steps, scenes, faq, about, corp, relatedSub, appCategory = "UtilitiesApplication", updated, app, fonts } = Astro.props;
+const { slug, title, description, ogTitle, h1, lead, sub, meta, steps, scenes, faq, about, corp, relatedSub, appCategory = "UtilitiesApplication", updated, app, fonts, crumbs = [], toc, readTitle, appType = "SoftwareApplication" } = Astro.props;
 
 /* 概要の最後には、どのツールでも同じ「料金」「免責」を付ける（書き方は規約 /terms/ にそろえる）
    3つ目を true にした行は、最後に「くわしくは利用規約（リンク）をご覧ください。」を添える */
@@ -50,23 +58,25 @@ const aboutRows: [string, string, boolean?][] = [
 ];
 
 const tool = HUB.TOOLS.find((t) => t.slug === slug);
-const name = tool?.name ?? h1;
-const path = `/${slug}/`;
+const name = Astro.props.name ?? tool?.name ?? h1;
+const path = Astro.props.path ?? `/${slug}/`;
 const url = new URL(path, Astro.site).href;
 /* 共有用の画像は public/og/<slug>.png（文言は scripts/og/og.config.mjs、作り直すときは npm run og） */
 const live = HUB.TOOLS.filter((t) => t.status === "live");
 
 const jsonLd = [
   ORG,
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name, description, applicationCategory: appCategory, operatingSystem: "Web", inLanguage: "ja", url, dateModified: updated, offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" }, publisher: PUBLISHER },
-  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["ホーム", new URL("/", Astro.site).href], [name, url]].map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, item: u })) },
+  { "@context": "https://schema.org", "@type": appType, name, description, applicationCategory: appCategory, operatingSystem: "Web", inLanguage: "ja", url, dateModified: updated, offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" }, publisher: PUBLISHER },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["ホーム", new URL("/", Astro.site).href], ...crumbs.map(([n, p]) => [n, new URL(p, Astro.site).href]), [name, url]].map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, item: u })) },
   { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
 ];
 
-const NAV: [string, string][] = [["/#tools", "ツール一覧"], ["#howto", "使い方"], ["#faq", "よくある質問"]];
+/* 読みものの目次。steps・scenes を省いたページは toc を渡す */
+const TOC: [string, string][] = toc ?? [...(steps ? [["#howto", "使い方"]] : []), ...(scenes ? [["#scenes", "こんなときに"]] : []), ["#faq", "よくある質問"], ["#related", "関連ツール"]] as [string, string][];
+const NAV: [string, string][] = [["/#tools", "ツール一覧"], steps ? ["#howto", "使い方"] : TOC[0], ["#faq", "よくある質問"]];
 const FOOT: { h: string; items: [string, string][] }[] = [
   { h: "ツール", items: [...live.map((t) => [HUB.label(t), "/" + t.slug + "/"] as [string, string]), ["ツール一覧", "/#tools"]] },
-  { h: "このページ", items: [["使い方", "#howto"], ["こんなときに使えます", "#scenes"], ["よくある質問", "#faq"], ["関連ツール", "#related"]] },
+  { h: "このページ", items: TOC.map(([h, l]) => [l === "こんなときに" ? "こんなときに使えます" : l, h] as [string, string]) },
 ];
 
 /* 関連ツール：hub.js の rel に書いた順 → 同じカテゴリの公開中 → ほかの公開中 の順に4つ */
@@ -84,6 +94,7 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
         <nav class="crumb" aria-label="パンくずリスト">
           <ol>
             <li><a href="/">ホーム</a></li>
+            {crumbs.map(([n, p]) => <li><a href={p}>{n}</a></li>)}
             <li><span aria-current="page">{name}</span></li>
           </ol>
         </nav>
@@ -114,15 +125,15 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
         <div class="read-head">
           <div>
             <div class="read-k"><Icon name="book" size={15} />はじめての方へ</div>
-            <h2 class="read-t">{name}の使い方</h2>
+            <h2 class="read-t">{readTitle ?? `${name}の使い方`}</h2>
           </div>
           <nav class="read-toc" aria-label="このセクションの目次">
-            {[["#howto", "使い方"], ["#scenes", "こんなときに"], ["#faq", "よくある質問"], ["#related", "関連ツール"]].map(([h, l]) => <a href={h}>{l}</a>)}
+            {TOC.map(([h, l]) => <a href={h}>{l}</a>)}
           </nav>
         </div>
       </div>
 
-      <section class="wrap sec sec-tight" id="howto" style="scroll-margin-top:72px" aria-label="使い方">
+      {steps && <section class="wrap sec sec-tight" id="howto" style="scroll-margin-top:72px" aria-label="使い方">
         <div class="steps reveal">
           {steps.map((s, i) => (
             <div class="step">
@@ -133,9 +144,9 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
             </div>
           ))}
         </div>
-      </section>
+      </section>}
 
-      <Scenes intro={scenes.intro} groups={scenes.groups} />
+      {scenes && <Scenes intro={scenes.intro} groups={scenes.groups} />}
 
       <slot name="guide" />
 
@@ -143,6 +154,8 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
         <SectionHead id="faq" kicker="よくある質問" title="つまずきやすいところと、その答え" />
         <Faq items={faq} />
       </section>
+
+      <slot name="after-faq" />
 
       <section class="wrap sec sec-tight">
         <SectionHead id="related" kicker="関連ツール" title="あわせて使えるツール" sub={(relatedSub ?? "") + "どれも無料・登録不要で、ブラウザだけで使えます。"} />

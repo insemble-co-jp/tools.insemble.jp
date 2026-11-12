@@ -38,6 +38,7 @@ const P = {
   sort: '<line x1="7" y1="5" x2="7" y2="19"/><polyline points="4 16 7 19 10 16"/><line x1="13" y1="7" x2="20" y2="7"/><line x1="13" y1="12" x2="18" y2="12"/><line x1="13" y1="17" x2="16" y2="17"/>',
   expand: '<polyline points="4 9 4 4 9 4"/><polyline points="15 4 20 4 20 9"/><polyline points="20 15 20 20 15 20"/><polyline points="9 20 4 20 4 15"/>',
   crown: '<path d="M4 8l4 4 4-7 4 7 4-4-1.5 10.5h-13L4 8Z"/>',
+  paw: '<path d="M8.3 17.4c0-2.5 1.7-4.6 3.7-4.6s3.7 2.1 3.7 4.6c0 1.7-1.4 2.6-3.7 2.6s-3.7-.9-3.7-2.6Z"/><ellipse cx="5.6" cy="11.2" rx="1.7" ry="2.1"/><ellipse cx="9.4" cy="6.8" rx="1.7" ry="2.2"/><ellipse cx="14.6" cy="6.8" rx="1.7" ry="2.2"/><ellipse cx="18.4" cy="11.2" rx="1.7" ry="2.1"/>',
   users: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M16 14.2a4.6 4.6 0 0 1 4.8 4.6"/>',
   /* 神経衰弱で使うもの */
   print: '<path d="M7 8V4h10v4"/><rect x="4" y="8" width="16" height="8" rx="2"/><rect x="7" y="13" width="10" height="7" rx="1"/>',
@@ -79,6 +80,7 @@ const T = {
   sheet: '<rect x="4" y="4.5" width="16" height="15" rx="2"/><line x1="4" y1="9.5" x2="20" y2="9.5"/><line x1="4" y1="14.5" x2="20" y2="14.5"/><line x1="10" y1="4.5" x2="10" y2="19.5"/>',
   wheel: '<circle cx="12" cy="12.5" r="8"/><line x1="12" y1="4.5" x2="12" y2="20.5"/><line x1="5.1" y1="8.5" x2="18.9" y2="16.5"/><line x1="5.1" y1="16.5" x2="18.9" y2="8.5"/><path d="M10.5 2.5h3L12 5Z" fill="currentColor"/>',
   users: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M16 14.2a4.6 4.6 0 0 1 4.8 4.6"/>',
+  paw: '<path d="M8.3 17.4c0-2.5 1.7-4.6 3.7-4.6s3.7 2.1 3.7 4.6c0 1.7-1.4 2.6-3.7 2.6s-3.7-.9-3.7-2.6Z"/><ellipse cx="5.6" cy="11.2" rx="1.7" ry="2.1"/><ellipse cx="9.4" cy="6.8" rx="1.7" ry="2.2"/><ellipse cx="14.6" cy="6.8" rx="1.7" ry="2.2"/><ellipse cx="18.4" cy="11.2" rx="1.7" ry="2.1"/>',
 };
 
 const draw = (paths, size, stroke, style, cls) =>

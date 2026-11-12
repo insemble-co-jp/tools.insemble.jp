@@ -10,7 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "og": "node scripts/og/render.mjs",
-    "samples": "node scripts/samples/render.mjs"
+    "samples": "node scripts/samples/render.mjs",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "test:e2e": "node scripts/test/pet-age-e2e.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

@@ -1,0 +1,38 @@
+---
+/* 出典・更新情報・運営情報（ページの下の「出典」）。中身は src/data/pet-age.js の SOURCES から */
+import SectionHead from "../SectionHead.astro";
+import { SOURCES, CHECKED, UPDATED } from "../../data/pet-age.js";
+
+interface Props {
+  ids: (keyof typeof SOURCES)[];
+}
+const { ids } = Astro.props;
+const fmt = (s: string) => s.replace(/^(\d{4})-0?(\d+)-0?(\d+)$/, "$1年$2月$3日");
+---
+<section class="wrap sec sec-tight">
+  <SectionHead id="sources" kicker="出典と更新情報" title="このページの根拠と、運営について" sub="換算の数値は、次の資料を実際に開いて確かめたものです。資料が改訂されたときは、確かめ直して数値と更新日を直します。" />
+  <ol class="pa-src reveal">
+    {ids.map((id) => {
+      const s = SOURCES[id];
+      return (
+        <li>
+          <p class="pa-src-t"><a href={s.url} target="_blank" rel="noopener">{s.title}</a>{s.lang === "en" && <span class="pa-lang">英語</span>}</p>
+          <p>{s.org}／{s.part}</p>
+          {"pdf" in s && s.pdf && <p>該当ページのPDF：<a href={s.pdf} target="_blank" rel="noopener">{s.pdf.replace(/^https:\/\//, "")}</a></p>}
+          <p class="pa-src-d">公開・更新：{s.date}／参照日：{fmt(CHECKED)}</p>
+          <p class="pa-src-d">このページでの使い方：{s.use}</p>
+        </li>
+      );
+    })}
+  </ol>
+  <div class="about solo reveal pa-ops">
+    <div>
+      <div class="log-h">更新情報と運営</div>
+      <dl>
+        <div><dt>内容の更新</dt><dd><time datetime={UPDATED}>{fmt(UPDATED)}</time>　換算モデル・早見表・解説を公開</dd></div>
+        <div><dt>運営</dt><dd>株式会社インセンブル（insemble）。公開されている資料をもとに運営者がまとめたページで、獣医師の監修は受けていません。</dd></div>
+        <div><dt>誤りに気づいたら</dt><dd>ページ下の「Webツール制作のご相談」から、運営会社のお問い合わせフォームでお知らせください。</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>

@@ -15,6 +15,7 @@ const HUB = (function () {
     { id: "decide", label: "決める・分ける", note: "席・順番・チーム分けを、1クリックで" },
     { id: "play", label: "あそぶ", note: "写真や絵で、カードゲームを手作り" },
     { id: "office", label: "Excel・業務", note: "入力したものを、そのまま仕事の書類に" },
+    { id: "life", label: "くらし・計算", note: "年齢や日付の、ちょっとした計算を" },
     { id: "other", label: "その他", note: "文章の整形や、開発まわりの小さな変換" },
   ];
 
@@ -49,6 +50,8 @@ const HUB = (function () {
     { slug: "schedule-excel", name: "スケジュール→Excelメーカー", desc: "予定を入れると、そのまま配れるExcelの予定表ができる。進行表や担当別の形でも書き出せる。", cat: "office", icon: "sheet", status: "live", hot: 6, added: "2026-09-30", isNew: true, kw: "エクセル xlsx csv 予定表 進行表 タイムテーブル 工程表 スケジュール表 日程表 研修 撮影 イベント", rel: ["pdf-extract"] },
 
     { slug: "deadline", name: "あと何日？", kind: "締切カウントダウン＋ToDo", desc: "締切を入れると、残り時間を数え続ける。近づくと色で知らせ、画面の隅にも置いておける。", cat: "office", icon: "timer", status: "live", hot: 1, added: "2026-10-08", isNew: true, kw: "締切 期限 カウントダウン 残り日数 残り時間 タイマー todo やること リマインダー 付箋 notion excel アプリ pwa デスクトップ 常駐 ホーム画面", rel: ["schedule-excel"] },
+
+    { slug: "pet-age", name: "うちの子、ヒトなら何歳？", kind: "ペット年齢換算", desc: "犬・猫の年齢を入れると、人間なら何歳かの目安が出る。飼い主と同い年になる頃もわかる。", cat: "life", icon: "paw", status: "live", hot: 9, added: "2026-11-12", isNew: true, kw: "ペット 年齢 換算 年齢換算 犬 猫 いぬ ねこ 人間 何歳 人間年齢 早見表 犬の年齢 猫の年齢 小型犬 中型犬 大型犬 子犬 子猫 シニア 誕生日 dog cat age", rel: ["deadline"] },
 
     { slug: "count", name: "文字数カウント", desc: "文章を入れると、文字数を数える。titleやdescriptionが目安に収まっているかも分かる。", cat: "other", icon: "hash", status: "soon" },
     { slug: "zen-han", name: "全角・半角変換", desc: "文章を入れると、英数字・カナ・記号の全角と半角をまとめてそろえる。原稿の表記ゆれ直しに。", cat: "other", icon: "type", status: "soon" },

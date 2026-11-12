@@ -1,0 +1,151 @@
+---
+/* 猫の年齢換算：生後1か月〜25歳の早見表・猫のライフステージ（2021 AAHA/AAFP）・子猫の月齢
+   数値はすべて src/data/pet-age.js から（本文に数字を直接書かない）。動きは src/scripts/tools/pet-age.js */
+import ToolPage from "../../../layouts/ToolPage.astro";
+import SectionHead from "../../../components/SectionHead.astro";
+import PetAgeTool from "../../../components/pet-age/PetAgeTool.astro";
+import ChartTable from "../../../components/pet-age/ChartTable.astro";
+import Sources from "../../../components/pet-age/Sources.astro";
+import Styles from "../../../components/pet-age/Styles.astro";
+import Icon from "../../../components/Icon.astro";
+import { MODELS, SOURCES, STAGES, UPDATED } from "../../../data/pet-age.js";
+import { humanAge, fmtPoint, rangeText } from "../../../lib/pet-age.js";
+
+const C = MODELS.cat, S = MODELS.dog.small;
+const h = (months: number) => Math.round(humanAge(C, months)!);
+const fv = SOURCES.felinevma, icc = SOURCES.icc, env = SOURCES.env;
+const senior = STAGES.cat.list.find((s) => s.en === "Senior")!;
+const mature = STAGES.cat.list.find((s) => s.en === "Mature adult")!;
+const kittenMonths = C.points.filter(([m]) => m < 12).map(([m]) => m);
+
+const FAQ = [
+  { q: "入れた猫の名前や生年月日は、どこかに送られますか？", a: "送られません。計算も、共有用の画像づくりも、お使いのブラウザの中だけで行います。入れた名前・生年月日・飼い主の年齢は運営者のサーバーに届かず、保存もせず、URLにも入りません。サイト全体でアクセス解析を使っていますが、入力欄と結果は記録しない設定にしています。" },
+  { q: "猫の年齢は、人間の何歳に相当しますか？", a: `目安として、1歳で約${h(12)}歳、2歳で約${h(24)}歳、そのあとは1年に約4歳ずつ増えます。たとえば7歳は約${h(84)}歳、10歳は約${h(120)}歳、15歳は約${h(180)}歳です（FelineVMAの年齢表より）。` },
+  { q: "猫は何歳からシニアですか？", a: `2021年のAAHA/AAFPの猫のライフステージ指針では、${senior.def}をシニア期、${mature.def}を成熟期としています。ただし区切りは資料によって違い、International Cat Care は11〜14歳を Senior、15歳以上を Super Senior と分けています。` },
+  { q: "保護した猫で、誕生日がわかりません", a: "「年齢で入れる」を選んで、年齢（歳）を入れてください。月は省略できます。動物病院で推定の年齢を聞いていれば、それを入れると目安になります。誕生日がわからないときは、計算する日にちょうどその年齢になったものとして計算します。" },
+  { q: "子猫（1歳未満）も換算できますか？", a: `生後${C.min}か月から換算できます。生後1か月で約${h(1)}歳、3か月で約${h(3)}歳、6か月で約${h(6)}歳の目安です。生後1か月未満は、資料の表に値がないため換算しません。` },
+  { q: "猫と小型犬の換算が同じ数字なのはなぜですか？", a: `使っている資料は別ですが、環境省の資料は「小〜中型犬・猫」をひとつの目安（1歳で約${Math.round(humanAge(S, 12)!)}歳、2歳で約${Math.round(humanAge(S, 24)!)}歳、そのあと1年に4歳ずつ）で示していて、猫の資料（FelineVMA）の値とも同じだからです。生後1か月からの月齢は、猫の資料にだけ載っています。` },
+  { q: "人間換算の年齢で、健康状態や寿命はわかりますか？", a: "わかりません。人間換算の年齢は、猫の一生を人の一生にたとえた目安です。同じ年齢でも、体の状態は1匹ごとに違います。体調が気になるときは、動物病院に相談してください。" },
+];
+---
+<ToolPage
+  slug="pet-age"
+  path="/pet-age/cat/"
+  name="猫の年齢換算"
+  crumbs={[["ペット年齢換算", "/pet-age/"]]}
+  title="猫の年齢換算｜人間なら何歳？年齢早見表つき｜insemble tools"
+  description="猫の年齢を、人間なら何歳かの目安に換算する無料ツールです。猫の獣医療団体FelineVMAの年齢表をもとに、生後1か月から25歳まで月齢で計算します。子猫期・シニア期などのライフステージと、年齢早見表も載せています。入力は送信しません。"
+  ogTitle="うちの猫、ヒトなら何歳？｜猫の年齢換算と早見表"
+  h1="猫の年齢換算｜人間なら何歳？年齢早見表つき"
+  lead={["うちの猫、", "ヒトなら何歳", "？"]}
+  sub="猫の年齢を、人間の年齢に置きかえた目安と、ライフステージ（子猫期・シニア期など）を出します。獣医療団体の表にもとづく目安で、健康状態や寿命まではわかりません。"
+  meta={[["check", "端末内で計算"], ["check", "入力は送信しません"]]}
+  faq={FAQ}
+  about={[
+    ["しくみ", `FelineVMAの年齢表で、${rangeText(C)}の猫を人間の年齢の目安に換算します。表の年齢のあいだは月ごとに直線でならします。ライフステージは2021年のAAHA/AAFPの区分です。`],
+    ["保存", "入れた名前・生年月日・飼い主の年齢は、どこにも送らず、保存もしません。ページを閉じると消えます。"],
+    ["わからないこと", "猫種ごとの違い、健康状態、寿命は、このツールではわかりません。"],
+  ]}
+  corp="たとえば「動物病院やペットホテルの会員ページで、猫の誕生日や記念日を数える」ような、専用のツールもつくれます。"
+  updated={UPDATED}
+  readTitle="猫の年齢換算のしくみ"
+  toc={[["#chart", "早見表"], ["#method", "換算方法と根拠"], ["#stages", "ライフステージ"], ["#kitten", "子猫の月齢"], ["#faq", "よくある質問"], ["#sources", "出典"]]}
+  appType="WebApplication"
+  appCategory="LifestyleApplication"
+>
+  <PetAgeTool species="cat" />
+
+  <Fragment slot="guide">
+    <section class="wrap sec">
+      <SectionHead id="chart" kicker="猫の年齢早見表" title="猫の年齢と、人間の年齢の目安" />
+      <p class="pa-concl reveal">猫は、1歳で約{h(12)}歳、2歳で約{h(24)}歳、そのあとは1年に約4歳ずつ、人間の年齢の目安が増えます。{senior.def}は、ライフステージではシニア期です。</p>
+      <ChartTable kind="cat" caption={`猫の年齢と人間の年齢の目安・ライフステージ（FelineVMA の資料から。${rangeText(C)}）`} />
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="method" kicker="換算方法と根拠" title="猫の獣医療団体の年齢表を使っています" />
+      <p class="pa-concl reveal">このツールは、FelineVMA（猫の獣医療の団体）が公開している「{fv.title}」の年齢表で、猫の年齢を換算します。同じ表に、2021年のAAHA/AAFPの指針にもとづくライフステージも載っています。</p>
+      <dl class="pa-dl reveal">
+        <div><dt>換算の目安</dt><dd>{C.rule}。生後1か月で約{h(1)}歳、6か月で約{h(6)}歳からはじまります。</dd></div>
+        <div><dt>ほかの資料</dt><dd>環境省「{env.title}」と、International Cat Care の表も、同じ年齢では同じ値です。数値の裏付けとして確かめています。</dd></div>
+        <div><dt>表のあいだ</dt><dd>表にない月齢（たとえば生後2か月や5歳）は、前後の値を月ごとに直線で結んで求めます。結果は「約○歳」と整数で表します。</dd></div>
+        <div><dt>換算する範囲</dt><dd>{rangeText(C)}。生後1か月未満と、{fmtPoint(C.max)}より上は、表に値がないため換算しません。</dd></div>
+        <div><dt>猫種のちがい</dt><dd>資料は猫を1つの表で示していて、猫種ごとの違いは扱っていません。</dd></div>
+      </dl>
+      <p class="pa-cite reveal">出典：<a href={fv.url} target="_blank" rel="noopener">FelineVMA「{fv.title}」</a>（英語・PDF）、<a href={icc.url} target="_blank" rel="noopener">International Cat Care「{icc.title}」</a>（英語）、<a href={env.url} target="_blank" rel="noopener">環境省「{env.title}」</a></p>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="stages" kicker="猫のライフステージ" title="何歳からシニア？2021年 AAHA/AAFP の区分" />
+      <p class="pa-concl reveal">2021年のAAHA/AAFPの猫のライフステージ指針では、{senior.def}をシニア期としています。結果に出るライフステージは、換算した年齢ではなく、この区分と実年齢から決めています。</p>
+      <dl class="pa-dl reveal">
+        {STAGES.cat.list.map((s) => <div><dt>{s.label}<br /><small lang="en">{s.en}</small></dt><dd>{s.def}</dd></div>)}
+      </dl>
+      <div class="pa-prose reveal">
+        <p>{STAGES.cat.note}</p>
+        <h3>区切りは資料によって違います</h3>
+        <p>International Cat Care は、{STAGES.catIcc.list.map(([k, d]) => `${k}（${d}）`).join("・")}の6つに分けています。同じ「シニア」でも、指す年齢が資料によって違うため、このツールではどの区分かを結果に書いています。</p>
+      </div>
+      <p class="pa-cite reveal">出典：<a href={fv.url} target="_blank" rel="noopener">FelineVMA「{fv.title}」</a>、<a href={SOURCES.aahaaafp.url} target="_blank" rel="noopener">{SOURCES.aahaaafp.title}</a>（概要ページ）、<a href={icc.url} target="_blank" rel="noopener">International Cat Care</a></p>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="kitten" kicker="子猫の月齢" title="子猫の1年は、人の約15年ぶん" />
+      <div class="pa-prose reveal">
+        <p class="pa-concl">生まれてから1年で、人間の年齢の目安は約{h(12)}歳まで進みます。そのため、子猫のうちは月齢まで入れると、目安がずれにくくなります。</p>
+        <ul>
+          {kittenMonths.map((m) => <li>生後{m}か月：約{h(m)}歳</li>)}
+          <li>1歳：約{h(12)}歳</li>
+        </ul>
+        <p>生年月日がわかるときは「生年月日」で入れると、月齢まで自動で数えます。わからないときは「年齢で入れる」で、0歳と月を選んでください。</p>
+      </div>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="limits" kicker="わかること・わからないこと" title="猫の換算年齢の読み方" />
+      <div class="pa-two pa-prose reveal">
+        <div>
+          <h3>わかること</h3>
+          <ul>
+            <li>生後1か月から{fmtPoint(C.max)}までの、人の年齢にたとえた目安</li>
+            <li>2021年のAAHA/AAFPの区分による、子猫期・若年期・成熟期・シニア期</li>
+            <li>飼い主と同い年になる（なった）時期の目安</li>
+          </ul>
+        </div>
+        <div>
+          <h3>わからないこと</h3>
+          <ul>
+            <li>猫種ごとの違い</li>
+            <li>健康状態、病気のなりやすさ、寿命</li>
+            <li>生後1か月未満と、{fmtPoint(C.max)}より上の換算</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </Fragment>
+
+  <Fragment slot="after-faq">
+    <Sources ids={["felinevma", "aahaaafp", "icc", "env"]} />
+    <section class="wrap sec sec-tight">
+      <SectionHead id="pages" kicker="関連ページ" title="犬の年齢や、まとめての早見表も" />
+      <nav class="tools pa-links" aria-label="関連ページ">
+        <a class="t-row" href="/pet-age/dog/">
+          <span class="t-ic"><Icon name="paw" size={20} tool /></span>
+          <div class="t-main"><div class="t-name">犬の年齢換算</div><p class="t-desc">体格別（小〜中型犬・大型犬）の1〜20歳の早見表</p></div>
+          <Icon name="arrow" size={17} class="t-arrow" />
+        </a>
+        <a class="t-row" href="/pet-age/">
+          <span class="t-ic"><Icon name="paw" size={20} tool /></span>
+          <div class="t-main"><div class="t-name">ペット年齢換算（犬・猫）</div><p class="t-desc">犬と猫を並べた早見表と、換算のしくみのまとめ</p></div>
+          <Icon name="arrow" size={17} class="t-arrow" />
+        </a>
+      </nav>
+    </section>
+  </Fragment>
+</ToolPage>
+
+<Styles />
+
+<script>
+  import "../../../scripts/tools/pet-age.js";
+</script>

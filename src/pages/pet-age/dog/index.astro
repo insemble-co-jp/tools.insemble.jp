@@ -1,0 +1,165 @@
+---
+/* 犬の年齢換算：体格別の早見表・体格で違う理由・犬のライフステージ・ほかの換算方法との違い
+   数値はすべて src/data/pet-age.js から（本文に数字を直接書かない）。動きは src/scripts/tools/pet-age.js */
+import ToolPage from "../../../layouts/ToolPage.astro";
+import SectionHead from "../../../components/SectionHead.astro";
+import PetAgeTool from "../../../components/pet-age/PetAgeTool.astro";
+import ChartTable from "../../../components/pet-age/ChartTable.astro";
+import Sources from "../../../components/pet-age/Sources.astro";
+import Styles from "../../../components/pet-age/Styles.astro";
+import Icon from "../../../components/Icon.astro";
+import { MODELS, SOURCES, STAGES, UPDATED } from "../../../data/pet-age.js";
+import { humanAge, fmtPoint, rangeText } from "../../../lib/pet-age.js";
+
+const S = MODELS.dog.small, L = MODELS.dog.large;
+const h = (m: typeof S, months: number) => Math.round(humanAge(m, months)!);
+const env = SOURCES.env, akc = SOURCES.akc;
+
+/* 大型犬のほうが上になる最初の年齢（1歳では大型犬のほうが若い） */
+let flip = 1;
+while (humanAge(L, flip * 12)! <= humanAge(S, flip * 12)!) flip++;
+/* 比べる年齢：10歳 */
+const cmpAge = 10;
+const avmaAt = (y: number) => akc.avma.first + (y >= 2 ? akc.avma.second : 0) + Math.max(0, y - 2) * akc.avma.after;
+const ucsdAt = (y: number) => Math.round(16 * Math.log(y) + 31);
+
+const FAQ = [
+  { q: "入れた犬の名前や生年月日は、どこかに送られますか？", a: "送られません。計算も、共有用の画像づくりも、お使いのブラウザの中だけで行います。入れた名前・生年月日・飼い主の年齢は運営者のサーバーに届かず、保存もせず、URLにも入りません。サイト全体でアクセス解析を使っていますが、入力欄と結果は記録しない設定にしています。" },
+  { q: "犬の年齢は7倍すればよいですか？", a: `7倍では、とくに若いころが大きくずれます。環境省の資料の目安では、${S.label}は1歳で約${h(S, 12)}歳、2歳で約${h(S, 24)}歳です（7倍なら7歳と14歳）。AKC（アメリカンケネルクラブ）の解説でも、米国獣医師会（AVMA）の説明として、犬が1年に人の7歳ぶん年を取るわけではないと紹介されています。` },
+  { q: "犬の体格によって換算年齢が違うのはなぜですか？", a: `換算のもとにした環境省の資料が、体格ごとに別の目安を示しているためです。同じ資料のライフステージの区分でも、成長期が小型犬は10か月ぐらい、大型犬は1年半ぐらいまでと長く、中高齢期に入るのは小〜中型犬が約8〜10歳、大型犬が約6〜7歳と早くなっています。そのため1歳では大型犬のほうが若く、${flip}歳からは大型犬のほうが上になります。` },
+  { q: "うちの犬が「小〜中型犬」と「大型犬」のどちらかわかりません", a: "資料には体重の境目が書かれていないため、このツールでも決めていません。犬種の一般的な大きさや、かかりつけの動物病院で言われた区分を目安に選んでください。迷うときは、結果に出る「もう一方の体格ならの値」も見比べてください。" },
+  { q: "1歳未満の子犬も換算できますか？", a: `人間の年齢への換算はできません。資料の表が1歳からで、それより前の値がないためです。かわりに、資料の区分にもとづくライフステージ（成長期など）を表示します。1歳になると、${S.label}は約${h(S, 12)}歳、${L.label}は約${h(L, 12)}歳の目安です。` },
+  { q: "人間換算の年齢で、健康状態や寿命はわかりますか？", a: "わかりません。人間換算の年齢は、犬の一生を人の一生にたとえた目安です。同じ年齢・同じ体格でも、体の状態は犬種や1頭ごとに違います。体調が気になるときは、動物病院に相談してください。" },
+  { q: "飼い主と同い年になる頃は、どう計算していますか？", a: `同じ日の「犬の人間換算の年齢」と「飼い主の実際の年齢」を比べ、差がなくなる時期を月ごとに探しています。未来では飼い主も1年に1歳ずつ年を取る計算です。探すのは資料の表の範囲（${S.label}は${fmtPoint(S.max)}、${L.label}は${fmtPoint(L.max)}まで）の中だけです。` },
+];
+---
+<ToolPage
+  slug="pet-age"
+  path="/pet-age/dog/"
+  name="犬の年齢換算"
+  crumbs={[["ペット年齢換算", "/pet-age/"]]}
+  title="犬の年齢換算｜人間なら何歳？体格別の早見表つき｜insemble tools"
+  description="犬の年齢を、人間なら何歳かの目安に換算する無料ツールです。環境省の資料の目安をもとに、小〜中型犬と大型犬に分けて計算します。1〜20歳の早見表と、体格で換算が違う理由、7倍ではない理由も解説。入力は送信しません。"
+  ogTitle="うちの犬、ヒトなら何歳？｜体格別の犬の年齢換算"
+  h1="犬の年齢換算｜人間なら何歳？体格別に計算"
+  lead={["うちの犬、", "ヒトなら何歳", "？"]}
+  sub={`犬の年齢を、体格（${S.label}・${L.label}）ごとに人間の年齢に置きかえた目安を出します。環境省の資料にもとづく目安で、犬種ごとの違いや健康状態まではわかりません。`}
+  meta={[["check", "端末内で計算"], ["check", "入力は送信しません"]]}
+  faq={FAQ}
+  about={[
+    ["しくみ", `環境省の資料の目安で、${S.label}は「${S.formula}」、${L.label}は「${L.formula}」として換算します。換算するのは${rangeText(S)}（${L.label}は${fmtPoint(L.max)}まで）です。`],
+    ["保存", "入れた名前・生年月日・飼い主の年齢は、どこにも送らず、保存もしません。ページを閉じると消えます。"],
+    ["わからないこと", "犬種ごとの違い、健康状態、寿命は、このツールではわかりません。"],
+  ]}
+  corp="たとえば「動物病院やトリミングサロンの会員ページで、犬の誕生日や記念日を数える」ような、専用のツールもつくれます。"
+  updated={UPDATED}
+  readTitle="犬の年齢換算のしくみ"
+  toc={[["#chart", "早見表"], ["#method", "換算方法と根拠"], ["#size", "体格で違う理由"], ["#stages", "ライフステージ"], ["#other", "ほかの換算方法"], ["#faq", "よくある質問"], ["#sources", "出典"]]}
+  appType="WebApplication"
+  appCategory="LifestyleApplication"
+>
+  <PetAgeTool species="dog" />
+
+  <Fragment slot="guide">
+    <section class="wrap sec">
+      <SectionHead id="chart" kicker="犬の年齢早見表" title="体格別：犬の年齢と、人間の年齢の目安" />
+      <p class="pa-concl reveal">{S.label}は、1歳で約{h(S, 12)}歳、2歳で約{h(S, 24)}歳、そのあとは1年に4歳ずつ。{L.label}は、1歳で約{h(L, 12)}歳、そのあとは1年に7歳ずつ増えます。10歳では、{S.label}が約{h(S, 120)}歳、{L.label}が約{h(L, 120)}歳です。</p>
+      <ChartTable kind="dog" caption={`犬の年齢と人間の年齢の目安（環境省の資料から。${S.label}は${fmtPoint(S.max)}、${L.label}は${fmtPoint(L.max)}まで）`} />
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="method" kicker="換算方法と根拠" title="環境省の資料の目安を使っています" />
+      <p class="pa-concl reveal">このツールは、環境省「{env.title}」に載っている「犬と人間、猫と人間の年齢の目安」で、犬の年齢を換算します。資料にも「品種等によってもこの関係は違ってきます」と書かれている、あくまで目安です。</p>
+      <dl class="pa-dl reveal">
+        <div><dt>{S.label}</dt><dd>{S.formula}。{S.rule}年を取るとされています。</dd></div>
+        <div><dt>{L.label}</dt><dd>{L.formula}。{L.rule}年を取るとされています。</dd></div>
+        <div><dt>体格の分け方</dt><dd>資料の区分は「{S.label}」「{L.label}」の2つで、体重の境目は書かれていません。このツールでも境目は決めず、選んだ区分で計算します。超大型犬も、資料に区分がないため{L.label}の目安で計算します。</dd></div>
+        <div><dt>月齢のあいだ</dt><dd>2歳から先は資料の式どおりで、月齢のあいだも同じ式でつながります。{S.label}の1〜2歳のあいだは式がないため、表の値（1歳＝{h(S, 12)}歳、2歳＝{h(S, 24)}歳）を月ごとに直線で結んでいます。</dd></div>
+        <div><dt>換算する範囲</dt><dd>{S.label}は{rangeText(S)}、{L.label}は{rangeText(L)}。資料の表に1歳未満の値はないため、子犬は換算しません。表より上の年齢も、延ばして計算しません。</dd></div>
+      </dl>
+      <p class="pa-cite reveal">出典：<a href={env.url} target="_blank" rel="noopener">環境省「{env.title}」</a>{env.part}（<a href={env.pdf} target="_blank" rel="noopener">PDF</a>）</p>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="size" kicker="体格で違う理由" title="大型犬は成長期が長く、中高齢期に入るのが早い" />
+      <div class="pa-prose reveal">
+        <p class="pa-concl">換算のもとにした環境省の資料が、体格ごとに別の目安を示しているためです。換算では、1歳のときは{L.label}のほうが若く、{flip}歳からは{L.label}のほうが上になります。</p>
+        <p>環境省の資料では、成長期は小型犬で10か月ぐらい、中型犬で1年ぐらい、大型犬で1年半ぐらいまでとされ、大型犬のほうが長く続きます。一方で中高齢期に入るのは、小〜中型犬が約8〜10歳、大型犬が約6〜7歳以降と、大型犬のほうが早くなっています。換算の式でも、{L.label}は2年目から1年に7歳ずつ、{S.label}は3年目から1年に4歳ずつと、増え方が違います。</p>
+        <p>体の大きい犬ほど寿命が短い傾向を示した研究も、<a href={akc.url} target="_blank" rel="noopener">AKC（アメリカンケネルクラブ）の解説</a>で紹介されています。ただし、ここでの換算は犬種ごとの寿命を表すものではありません。</p>
+      </div>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="stages" kicker="犬のライフステージ" title="環境省の資料の区分（フード選びの目安）" />
+      <p class="pa-concl reveal">結果に出るライフステージは、換算した年齢ではなく、資料の区分と実年齢から決めています。区分は、資料ではフードの選び方のために示されたものです。</p>
+      <dl class="pa-dl reveal">
+        {STAGES.dog.sourceRows.map(([k, d]) => <div><dt>{k}</dt><dd>{d}</dd></div>)}
+      </dl>
+      <div class="pa-prose reveal">
+        <p>資料の書き方には「ぐらい」「約8〜10歳」のような幅があるため、このツールでは、幅のある時期を「成長期の終わりごろ」「中高齢期に入るころ」と表示します。{STAGES.dog.note}</p>
+      </div>
+      <p class="pa-cite reveal">出典：<a href={env.url} target="_blank" rel="noopener">環境省「{env.title}」</a>9ページ「ライフステージによる分類」</p>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="other" kicker="ほかの換算方法" title="換算表によって数字が違うのはなぜ？" />
+      <div class="pa-prose reveal">
+        <p class="pa-concl">犬の年齢の換算表は1つに決まっておらず、資料によって数字が違います。このツールは、日本の公的機関の資料で、犬の体格の区分と式がはっきりしている環境省の目安を使っています。</p>
+        <h3>米国獣医師会（AVMA）の目安</h3>
+        <p>AKCの解説では、AVMAの目安として「{akc.avma.scope}の1年目は人の{akc.avma.first}歳、2年目は約{akc.avma.second}歳ぶん、そのあとは1年に約{akc.avma.after}歳ぶん」と紹介されています。この方法だと{cmpAge}歳の{akc.avma.scope}は約{avmaAt(cmpAge)}歳で、環境省の目安（{S.label}・約{h(S, cmpAge * 12)}歳）より上になります。体格を4つに分けたAVMAの表も広く引用されていますが、配布元のPDFが現在は開けず、原典で数値を確かめられなかったため使っていません。</p>
+        <h3>DNAの変化から求めた式</h3>
+        <p>カリフォルニア大学サンディエゴ校の研究では、DNAの変化から「{akc.ucsd.formula}」という式が示されました（AKCの解説より）。この式では1歳が約{ucsdAt(1)}歳、{cmpAge}歳が約{ucsdAt(cmpAge)}歳になります。ただし、調べたのは{akc.ucsd.breed}{akc.ucsd.dogs}頭だけで、ほかの犬種や体格にそのまま当てはめられるかはわからないため、このツールでは使っていません。</p>
+        <h3>「年齢×7」</h3>
+        <p>1つの数をかけるだけの方法は、最初の1〜2年で一気に大人になる犬の育ち方と合いません。このページで参照した資料は、どれも7倍を使っていません。</p>
+      </div>
+      <p class="pa-cite reveal">出典：<a href={akc.url} target="_blank" rel="noopener">AKC「{akc.title}」</a>（{akc.date}）、研究の原文（プレプリント）：<a href={akc.ucsd.paper} target="_blank" rel="noopener">bioRxiv 10.1101/829192</a></p>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="limits" kicker="わかること・わからないこと" title="犬の換算年齢の読み方" />
+      <div class="pa-two pa-prose reveal">
+        <div>
+          <h3>わかること</h3>
+          <ul>
+            <li>体格（{S.label}・{L.label}）ごとの、人の年齢にたとえた目安</li>
+            <li>環境省の資料の区分による、成長期・成犬期・中高齢期の目安</li>
+            <li>飼い主と同い年になる（なった）時期の目安</li>
+          </ul>
+        </div>
+        <div>
+          <h3>わからないこと</h3>
+          <ul>
+            <li>犬種ごとの違い（同じ体格でも、年の取り方は犬種で違います）</li>
+            <li>1歳未満の子犬の、人間の年齢への換算</li>
+            <li>健康状態、病気のなりやすさ、寿命</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </Fragment>
+
+  <Fragment slot="after-faq">
+    <Sources ids={["env", "akc"]} />
+    <section class="wrap sec sec-tight">
+      <SectionHead id="pages" kicker="関連ページ" title="猫の年齢や、まとめての早見表も" />
+      <nav class="tools pa-links" aria-label="関連ページ">
+        <a class="t-row" href="/pet-age/cat/">
+          <span class="t-ic"><Icon name="paw" size={20} tool /></span>
+          <div class="t-main"><div class="t-name">猫の年齢換算</div><p class="t-desc">生後1か月〜25歳の早見表と、猫のライフステージ</p></div>
+          <Icon name="arrow" size={17} class="t-arrow" />
+        </a>
+        <a class="t-row" href="/pet-age/">
+          <span class="t-ic"><Icon name="paw" size={20} tool /></span>
+          <div class="t-main"><div class="t-name">ペット年齢換算（犬・猫）</div><p class="t-desc">犬と猫を並べた早見表と、換算のしくみのまとめ</p></div>
+          <Icon name="arrow" size={17} class="t-arrow" />
+        </a>
+      </nav>
+    </section>
+  </Fragment>
+</ToolPage>
+
+<Styles />
+
+<script>
+  import "../../../scripts/tools/pet-age.js";
+</script>

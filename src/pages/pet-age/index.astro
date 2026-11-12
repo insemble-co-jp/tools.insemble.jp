@@ -1,0 +1,134 @@
+---
+/* ペット年齢換算（総合）：犬・猫の入口。犬・猫の詳しい説明は /pet-age/dog/・/pet-age/cat/
+   数値はすべて src/data/pet-age.js から（本文に数字を直接書かない）。動きは src/scripts/tools/pet-age.js */
+import ToolPage from "../../layouts/ToolPage.astro";
+import Icon from "../../components/Icon.astro";
+import SectionHead from "../../components/SectionHead.astro";
+import PetAgeTool from "../../components/pet-age/PetAgeTool.astro";
+import ChartTable from "../../components/pet-age/ChartTable.astro";
+import Sources from "../../components/pet-age/Sources.astro";
+import Styles from "../../components/pet-age/Styles.astro";
+import { MODELS, SOURCES, UPDATED } from "../../data/pet-age.js";
+import { humanAge, compareOwner, fmtPoint, fmtSpan, rangeText } from "../../lib/pet-age.js";
+
+const S = MODELS.dog.small, L = MODELS.dog.large, C = MODELS.cat;
+const h = (m: typeof S, months: number) => Math.round(humanAge(m, months)!);
+
+/* 例：小〜中型犬3歳と30歳の飼い主（飼い主も年を取る計算と、取らない計算の違い） */
+const exPet = 36, exOwner = 30;
+const ex = compareOwner(S, exPet, exOwner * 12);
+let naive = 0;
+while (humanAge(S, exPet + naive)! < exOwner) naive++;
+
+const FAQ = [
+  { q: "入れた名前や生年月日は、どこかに送られますか？", a: "送られません。計算も、共有用の画像づくりも、お使いのブラウザの中だけで行います。入れた名前・生年月日・飼い主の年齢は、運営者のサーバーに届かず、保存もせず、URLにも入りません。ページを閉じると消えます。サイト全体でアクセス解析（Google アナリティクス・Microsoft Clarity）を使っていますが、入力欄と結果は記録しない設定にしています。" },
+  { q: "犬の年齢は7倍すればよいですか？", a: `7倍では大きくずれます。環境省の資料の目安では、${S.label}は1歳で約${h(S, 12)}歳（7倍なら7歳）、2歳で約${h(S, 24)}歳、そのあとは1年に4歳ずつ。${L.label}は1歳で約${h(L, 12)}歳、そのあとは1年に7歳ずつです。最初の1〜2年で一気に大人になり、そのあとはゆるやかに年を取る、という考え方です。` },
+  { q: "誕生日がわからなくても使えますか？", a: "使えます。「年齢で入れる」を選んで、年齢（歳）を入れてください。月は省略できます。保護した子などで年齢がはっきりしないときは、動物病院で聞いた推定の年齢を入れると目安になります。誕生日がわからないときは、計算する日にちょうどその年齢になったものとして計算します。" },
+  { q: "人間換算の年齢で、健康状態はわかりますか？", a: "わかりません。人間換算の年齢は、犬や猫の一生を人の一生にたとえた目安です。同じ年齢でも、体の状態は種類や体格、1頭ごとに違います。体調が気になるときは、動物病院に相談してください。" },
+  { q: "飼い主と同い年になる頃は、どう計算していますか？", a: `同じ日の「うちの子の人間換算の年齢」と「飼い主の実際の年齢」を比べ、差がなくなる時期を月ごとに探しています。未来では飼い主も1年に1歳ずつ年を取る計算です。資料の表の範囲（猫は${fmtPoint(C.max)}、${S.label}は${fmtPoint(S.max)}、${L.label}は${fmtPoint(L.max)}まで）の中だけで探すため、範囲の中で同い年にならないときは、その理由を表示します。` },
+  { q: "鳥やうさぎにも対応していますか？", a: "いまは犬と猫だけです。鳥は種類によって寿命の差がとても大きく、ひとつの表で換算すると誤解を招くため、対応していません。うさぎやハムスターなども、根拠にできる資料を確かめられたら、追加を考えます。" },
+];
+---
+<ToolPage
+  slug="pet-age"
+  name="ペット年齢換算"
+  title="ペット年齢換算｜犬・猫は人間なら何歳？早見表つき｜insemble tools"
+  description="犬・猫の年齢を、人間なら何歳かの目安に換算する無料ツールです。環境省などの資料をもとに、犬は体格別に計算します。誕生日がわからなくても年齢で入れられ、飼い主と同い年になる頃もわかります。入力は送信しません。"
+  ogTitle="うちの子、ヒトなら何歳？｜犬・猫の年齢換算"
+  h1="ペット年齢換算｜犬・猫は人間なら何歳？"
+  lead={["うちの子、", "ヒトなら何歳", "？"]}
+  sub="犬・猫の年齢を、人間の年齢に置きかえた目安を出します。公的機関と獣医師団体の換算表をもとにした目安で、健康状態や寿命はわかりません。"
+  meta={[["check", "端末内で計算"], ["check", "入力は送信しません"]]}
+  faq={FAQ}
+  about={[
+    ["しくみ", `犬は環境省の資料の目安（${S.label}・${L.label}の2区分）、猫はFelineVMAの年齢表で、人間の年齢の目安に換算します。表の年齢のあいだは月ごとに直線でならし、表の範囲の外は換算しません。`],
+    ["保存", "入れた名前・生年月日・飼い主の年齢は、どこにも送らず、保存もしません。ページを閉じると消えます。"],
+    ["わからないこと", "健康状態・寿命・老化の進み方は、このツールではわかりません。"],
+  ]}
+  corp="たとえば「動物病院やペットサロンの会員ページで、うちの子の誕生日や記念日を数える」ような、専用のツールもつくれます。"
+  updated={UPDATED}
+  readTitle="ペットの年齢換算のしくみ"
+  toc={[["#chart", "早見表"], ["#method", "換算のしくみ"], ["#family", "同い年になる頃"], ["#limits", "わかること・わからないこと"], ["#faq", "よくある質問"], ["#sources", "出典"]]}
+  appType="WebApplication"
+  appCategory="LifestyleApplication"
+>
+  <PetAgeTool />
+
+  <Fragment slot="guide">
+    <section class="wrap sec">
+      <SectionHead id="chart" kicker="年齢早見表" title="犬・猫の年齢と、人間の年齢の目安" />
+      <p class="pa-concl reveal">{S.label}と猫は、1歳で約{h(S, 12)}歳、2歳で約{h(S, 24)}歳、そのあとは1年に約4歳ずつ。{L.label}は1歳で約{h(L, 12)}歳、そのあとは1年に約7歳ずつ、人間の年齢の目安が増えます。</p>
+      <ChartTable kind="mix" caption="犬・猫の年齢と人間の年齢の目安（犬：環境省、猫：FelineVMA の資料から）" />
+      <nav class="tools pa-links" aria-label="くわしい早見表">
+        <a class="t-row" href="/pet-age/dog/">
+          <span class="t-ic"><Icon name="paw" size={20} tool /></span>
+          <div class="t-main"><div class="t-name">犬の年齢換算（1〜20歳の体格別の早見表）</div><p class="t-desc">体格で換算が違う理由、犬のライフステージ、ほかの換算方法との違い</p></div>
+          <Icon name="arrow" size={17} class="t-arrow" />
+        </a>
+        <a class="t-row" href="/pet-age/cat/">
+          <span class="t-ic"><Icon name="paw" size={20} tool /></span>
+          <div class="t-main"><div class="t-name">猫の年齢換算（生後1か月〜25歳の早見表）</div><p class="t-desc">子猫の月齢の換算、何歳からシニアか、ライフステージの区切り</p></div>
+          <Icon name="arrow" size={17} class="t-arrow" />
+        </a>
+      </nav>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="method" kicker="換算のしくみ" title="何をもとに、どう換算しているか" />
+      <p class="pa-concl reveal">犬と猫で別の資料を使い、資料の表の値をそのまま使います。「年齢×7」のような1つの式を、すべての年齢・種類に当てはめることはしません。</p>
+      <dl class="pa-dl reveal">
+        <div><dt>犬</dt><dd>環境省「{SOURCES.env.title}」の「犬と人間、猫と人間の年齢の目安」。{S.label}は「{S.formula}」、{L.label}は「{L.formula}」です。体重の境目は資料に書かれていないため、このツールでも決めていません。</dd></div>
+        <div><dt>猫</dt><dd>FelineVMA（猫の獣医療の団体）の「{SOURCES.felinevma.title}」の年齢表。{C.rule}で、環境省の資料や International Cat Care の表とも同じ値です。</dd></div>
+        <div><dt>表のあいだ</dt><dd>表にない月齢は、前後の値を月ごとに直線で結んで求めます。結果は「約○歳」と整数で表し、日単位などの細かい数字は出しません。</dd></div>
+        <div><dt>換算する範囲</dt><dd>猫は{rangeText(C)}、{S.label}は{rangeText(S)}、{L.label}は{rangeText(L)}。表の外は根拠がないため、延ばして計算しません。</dd></div>
+        <div id="stages" style="scroll-margin-top:88px"><dt>ライフステージ</dt><dd>換算とは別に、資料の区分で出します。猫は2021年のAAHA/AAFPの区分（子猫期・若年期・成熟期・シニア期）、犬は環境省の資料の区分（成長期・成犬期・中高齢期など。フード選びのための目安）です。換算した年齢だけを見て「シニア」などと決めることはしません。</dd></div>
+      </dl>
+      <p class="pa-cite reveal">出典：<a href={SOURCES.env.url} target="_blank" rel="noopener">環境省「{SOURCES.env.title}」</a>、<a href={SOURCES.felinevma.url} target="_blank" rel="noopener">FelineVMA「{SOURCES.felinevma.title}」</a>（参照日などは下の「出典」に）</p>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="family" kicker="家族と同い年になる頃" title="飼い主も年を取る前提で、同い年になる時期を探す" />
+      <div class="pa-prose reveal">
+        <p class="pa-concl">飼い主の生年月日か年齢を入れると、うちの子と同い年になる（なった）時期の目安が出ます。比べるのは、同じ日の「うちの子の人間換算の年齢」と「飼い主の実際の年齢」です。</p>
+        <p>たとえば、3歳の{S.label}（人間なら約{h(S, exPet)}歳）と{exOwner}歳の飼い主なら、同い年になるのは<strong>{fmtSpan(ex.cross!.t, false)}</strong>です。飼い主の年齢を{exOwner}歳のまま比べると「{naive}か月後」と出てしまい、飼い主が年を取るぶんを見落とします。</p>
+        <ul>
+          <li>資料の表の範囲の中だけで探します。範囲の中で同い年にならないときは、その理由を表示します。</li>
+          <li>年齢で入れたときは誕生日がわからないため、計算する日にちょうどその年齢になったものとして計算し、時期は「○年頃」と年単位で表します。</li>
+          <li>結果は遊びとしての目安で、老化の進み方や寿命を予測するものではありません。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap sec sec-tight">
+      <SectionHead id="limits" kicker="わかること・わからないこと" title="換算した年齢の読み方" />
+      <div class="pa-two pa-prose reveal">
+        <div>
+          <h3>わかること</h3>
+          <ul>
+            <li>いまの年齢が、人の一生にたとえると何歳くらいにあたるかの目安</li>
+            <li>資料で決められている範囲の、ライフステージ（子猫期・中高齢期など）</li>
+            <li>飼い主と同い年になる（なった）時期の目安</li>
+          </ul>
+        </div>
+        <div>
+          <h3>わからないこと</h3>
+          <ul>
+            <li>健康状態、病気のなりやすさ、寿命</li>
+            <li>犬種・猫種ごとの違い（犬は体格の2区分だけ、猫は1つの表）</li>
+            <li>鳥・うさぎ・ハムスターなど、犬と猫以外の年齢</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </Fragment>
+
+  <Fragment slot="after-faq">
+    <Sources ids={["env", "felinevma", "aahaaafp", "icc"]} />
+  </Fragment>
+</ToolPage>
+
+<Styles />
+
+<script>
+  import "../../scripts/tools/pet-age.js";
+</script>

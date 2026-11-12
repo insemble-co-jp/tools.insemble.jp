@@ -1,0 +1,53 @@
+---
+/* 年齢早見表。値は src/lib/pet-age.js の chartRows()（＝計算と同じ関数）から作り、HTML に書き出す
+   kind：dog（体格別）／cat（ライフステージつき）／mix（総合ページの短い表） */
+import { MODELS, CHART } from "../../data/pet-age.js";
+import { chartRows, fmtPoint } from "../../lib/pet-age.js";
+
+interface Props {
+  kind: "dog" | "cat" | "mix";
+  caption: string;
+}
+const { kind, caption } = Astro.props;
+const rows = chartRows(kind);
+const S = MODELS.dog.small, L = MODELS.dog.large, C = MODELS.cat;
+const capId = `pa-cap-${kind}`;
+
+type Cell = { human: number | null; table: boolean };
+/* 猫の表で、資料の表にない年齢（補間した値）には ※ を付ける */
+const mark = (c: Cell, model: typeof C) => kind !== "dog" && model === C && c.human !== null && !c.table;
+const tableAges = (model: typeof S) => model.points.map(([m]) => fmtPoint(m)).join("・");
+const interpolated = CHART.cat.filter((m) => !C.points.some(([p]) => p === m)).map(fmtPoint);
+---
+<div class="pa-tbl-wrap reveal" role="region" aria-labelledby={capId} tabindex="0">
+  <table class="pa-tbl">
+    <caption id={capId}>{caption}</caption>
+    <thead>
+      {kind === "dog" && <tr><th scope="col">犬の年齢</th><th scope="col">{S.label}<small>人間の年齢の目安</small></th><th scope="col">{L.label}<small>人間の年齢の目安</small></th></tr>}
+      {kind === "cat" && <tr><th scope="col">猫の年齢</th><th scope="col">人間の年齢の目安</th><th scope="col">ライフステージ</th></tr>}
+      {kind === "mix" && <tr><th scope="col">年齢</th><th scope="col">猫</th><th scope="col">{S.label}</th><th scope="col">{L.label}</th></tr>}
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          <th scope="row">{r.label}</th>
+          {(kind === "cat" || kind === "mix") && (
+            <td>{r.cat!.human !== null ? <>{r.cat!.human}歳{mark(r.cat!, C) && <span class="pa-mk" title="資料の表にない年齢（前後の値を直線で結んだ値）">※</span>}</> : <span class="pa-na">—<span class="sr-only">資料の範囲外</span></span>}</td>
+          )}
+          {(kind === "dog" || kind === "mix") && (
+            <>
+              <td>{r.small!.human !== null ? `${r.small!.human}歳` : <span class="pa-na">—<span class="sr-only">資料の範囲外</span></span>}</td>
+              <td>{r.large!.human !== null ? `${r.large!.human}歳` : <span class="pa-na">—<span class="sr-only">資料の範囲外</span></span>}</td>
+            </>
+          )}
+          {kind === "cat" && <td class="pa-stg">{r.stage?.label}</td>}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<p class="pa-tbl-note">
+  {kind === "dog" && <>資料の表に載っている年齢は、{S.label}が{tableAges(S)}、{L.label}が{tableAges(L)}です。そのほかの年齢は、資料の式（{S.label}：{S.formula}／{L.label}：{L.formula}）で計算した値で、表の値ともつながっています。「—」は資料の範囲外で、換算していません。</>}
+  {kind === "cat" && <>※は資料の表にない年齢（{interpolated.join("・")}）で、前後の値を直線で結んだ値です。ほかは資料の表の値そのものです。</>}
+  {kind === "mix" && <>{S.label}と猫は、資料の値がそろっています。※は猫の資料の表にない年齢で、前後の値を直線で結んだ値です。「—」は資料の範囲外（大型犬は{fmtPoint(L.max)}まで）で、換算していません。</>}
+</p>
