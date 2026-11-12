@@ -31,7 +31,8 @@ const HUB = (function () {
     { slug: "share-link", name: "シェアリンク生成", desc: "URLと文言を入れると、X・LINE・Facebookでシェアするためのリンクを組み立てる。", cat: "web", icon: "send", status: "soon" },
     { slug: "qr", name: "QRコード生成", desc: "URLを入れると、QRコードを作る。大きさ・余白・色を変えて、画像として書き出せる。", cat: "web", icon: "qr", status: "soon" },
 
-    { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", cat: "file", icon: "pdf", status: "live", hot: 5, added: "2026-09-30", isNew: true, kw: "pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["schedule-excel", "ogp"] },
+    { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", cat: "file", icon: "pdf", status: "live", hot: 5, added: "2026-09-30", isNew: true, kw: "pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["image-split", "schedule-excel", "ogp"] },
+    { slug: "image-split", name: "画像ばらし屋", kind: "並べたものを1枚ずつ切り出し", desc: "並べて撮った写真を入れると、1つずつの画像に切り出す。番号付きの全体図と一緒にZIPで保存。", cat: "file", icon: "split", status: "live", hot: 8, added: "2026-10-26", isNew: true, kw: "画像 分割 切り出し 切り抜き トリミング 一括 まとめ撮り 商品写真 名刺 スキャン アイコン スプライト タイル フローリング 床材 グリッド split crop", rel: ["pdf-extract"] },
     { slug: "resize", name: "画像リサイズ", desc: "画像を入れると、指定した大きさにまとめて変える。縦横の比率を保ったまま、複数枚を一度に。", cat: "file", icon: "image", status: "soon" },
     { slug: "compress", name: "画像圧縮", desc: "画像を入れると、見た目を保ったままファイルを軽くする。ページの表示を速くしたいときに。", cat: "file", icon: "zip", status: "soon" },
     { slug: "webp", name: "WebP変換", desc: "PNG・JPEGを入れると、WebPに変換する。WebPからPNG・JPEGに戻すこともできる。", cat: "file", icon: "swap", status: "soon" },

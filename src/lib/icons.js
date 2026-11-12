@@ -69,6 +69,7 @@ const T = {
   dice: '<rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/><circle cx="9" cy="9" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
   palette: '<path d="M12 20a8 8 0 1 1 8-8c0 2.2-1.8 3-3.4 3H15a2 2 0 0 0-1.4 3.4A1.8 1.8 0 0 1 12 20Z"/><circle cx="8.6" cy="10.4" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.4" cy="9.6" r="1.1" fill="currentColor" stroke="none"/>',
   clock: '<circle cx="12" cy="12" r="8"/><polyline points="12 7.5 12 12 15.5 13.8"/>',
+  split: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><line x1="3.5" y1="12" x2="20.5" y2="12"/><line x1="10" y1="5" x2="10" y2="12"/><line x1="14.5" y1="12" x2="14.5" y2="19"/>',
   pdf: '<path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3.5Z"/><polyline points="14 3.5 14 8 18.5 8"/><path d="M8.5 13.5h7M8.5 16.5h4.5"/>',
   seat: '<rect x="6.5" y="9" width="11" height="6" rx="1.6"/><circle cx="9" cy="5.5" r="1.4"/><circle cx="15" cy="5.5" r="1.4"/><circle cx="9" cy="18.5" r="1.4"/><circle cx="15" cy="18.5" r="1.4"/>',
   sheet: '<rect x="4" y="4.5" width="16" height="15" rx="2"/><line x1="4" y1="9.5" x2="20" y2="9.5"/><line x1="4" y1="14.5" x2="20" y2="14.5"/><line x1="10" y1="4.5" x2="10" y2="19.5"/>',
