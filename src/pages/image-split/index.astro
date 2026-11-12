@@ -1,0 +1,189 @@
+---
+/* 画像ばらし屋：並べて撮った写真から、1つずつの画像を切り出す。動きは src/scripts/tools/image-split.js
+   画像はブラウザの中だけで読む（サーバーには送らない）。区切りの見つけ方は src/lib/image-split.js */
+import ToolPage from "../../layouts/ToolPage.astro";
+import Icon from "../../components/Icon.astro";
+
+const FAQ = [
+  { q: "画像はどこかに送られますか？", a: "送られません。区切りを見つけるのも切り出すのも、すべてお使いのブラウザの中で行います。画像が運営者のサーバーや外部のサービスに届くことはありません。ページを閉じると、読み込んだ画像も消えます。" },
+  { q: "AIで判定しているのですか？", a: "AIは使っていません。画像の色を数値として読み、「背景の色だけが続く行・列（すき間）」や「両側で色が切り替わる線（目地）」を探して、そこで区切っています。同じ画像なら、毎回同じ結果になります。" },
+  { q: "うまく分かれません", a: "まず「並べ方」を「すき間あり」か「敷き詰め」に切り替えてみてください。それでも合わないときは、「細かく調整する」の見つけやすさを動かします。足りない区切りや余分な区切りは、画像をクリックして足したり消したりできます。斜めから撮った写真や、背景に模様がある写真は苦手なので、できれば真上から、無地の背景で撮ってください。" },
+  { q: "白い名刺がうまく分かれません", a: "名刺と背景がどちらも白いと、すき間を見分けられません。スキャナーのふたの代わりに黒や紺の紙をかぶせてスキャンするか、濃い色の机の上に並べて撮ると、きれいに分かれます。" },
+  { q: "切り出した画像の画質は落ちますか？", a: "元の画像と同じ大きさのまま切り出します。PNGを選ぶと画質は落ちません。JPEGを選ぶと、ファイルが軽くなるかわりに、画質が少しだけ下がります。番号付きと区切り線入りの全体図は、確認用なので軽いJPEGで保存します。" },
+  { q: "ZIPには何が入っていますか？", a: "1つずつの画像（ファイル名の「01-02」は、上から1段目・左から2つ目という意味です）と、同じ番号を書き込んだ全体図、区切り線を引いた全体図、それぞれの画像が元の写真のどこにあったかを記録したファイル（位置.json）が入っています。" },
+  { q: "大きな写真でも大丈夫ですか？", a: "読み込めるのは1枚50MBまでです。スマホで撮った写真なら、そのまま使えます。分けた数が400個を超えると保存できないので、細かすぎるときは見つけやすさを下げてください。" },
+];
+
+const SCENES = {
+  intro: "何枚も並べて1回で撮ったり、まとめてスキャンしたりするのは楽ですが、あとで1枚ずつ切り抜くのが面倒です。並べた写真を入れるだけで、区切りを見つけて1つずつの画像にし、どれがどこにあったかが分かる番号付きの全体図も付けて保存します。",
+  groups: [
+    {
+      h: "ネットショップ・Web制作",
+      items: [
+        ["商品を何個か並べてまとめ撮りしたけれど、商品ページには1つずつの写真がほしい", "白い背景の上にすき間を空けて並べて撮れば、1つずつに切り出し、まわりの余白も自動で詰めます。"],
+        ["アイコンやバナーが1枚の画像に並んでいて、個別のファイルが手元にない", "並んだ画像を1つずつのPNGに切り出せます。小さなアイコンが何十個も並んでいても、まとめて分けられます。"],
+        ["クライアントから届いた資料の画像に、写真が並べて貼られていた", "写真ごとに切り出して、そのまま素材として使えます。PDFなら、先に「PDFばらし屋」でページを画像にしてから使えます。"],
+      ],
+    },
+    {
+      h: "事務・整理",
+      items: [
+        ["もらった名刺を、1枚ずつスキャンするのが面倒", "スキャナーにまとめて並べて1回でスキャンし、1枚ずつの画像に分けられます。白い名刺は、黒い紙をかぶせると分かれやすくなります。"],
+        ["古いアルバムの写真を、何枚かずつまとめてスキャンした", "まとめてスキャンした画像から、写真を1枚ずつ切り出せます。ファイル名に並び順の番号が入るので、元の並びも分かります。"],
+        ["レシートやカードを並べて撮って、1枚ずつ記録に残したい", "1枚ずつの画像にして、番号付きの全体図と一緒に保存できます。"],
+      ],
+    },
+    {
+      h: "建材・床材・ものづくり",
+      items: [
+        ["フローリングの仮並べ写真を、板1枚ずつの画像にしたい", "「敷き詰め」で、目地や板ごとの色の違いから区切りを見つけ、板1枚ずつに切り出します。区切り線を引いた全体図も付きます。"],
+        ["タイルや壁材を並べた写真から、1枚ずつの見本画像を作りたい", "すき間なく並べた写真でも、区切りを見つけて1枚ずつにできます。縦に並べたものも自動で見分けます。"],
+        ["どの板がどこにあったかを、現場や取引先と共有したい", "番号を書き込んだ全体図と、区切り線を引いた全体図がZIPに入るので、番号で話ができます。"],
+        ["見本帳やカタログの色見本を、1つずつ取り出したい", "格子状に並んだ見本を、1つずつの画像に切り出せます。"],
+      ],
+    },
+  ],
+};
+---
+<ToolPage
+  slug="image-split"
+  title="並べて撮った写真を1枚ずつに切り出す｜画像ばらし屋｜insemble tools"
+  description="商品のまとめ撮り、名刺のまとめスキャン、フローリングやタイルの写真から、区切りを自動で見つけて1つずつの画像に切り出す無料ツールです。番号付きの全体図と一緒にZIPで保存できます。画像はブラウザの中だけで処理し、送信しません。"
+  ogTitle="画像ばらし屋｜並べて撮った写真を、1枚ずつに切り出す"
+  h1="画像ばらし屋｜並べて撮った写真を1枚ずつに分ける無料ツール"
+  lead={["並べて撮った写真を、", "1枚ずつ", "に切り出す。"]}
+  sub="すき間を空けて並べたものも、すき間なく敷き詰めたものも、区切りを見つけて1つずつの画像にします。画像はどこにも送りません。"
+  meta={[["check", "端末内で処理"], ["check", "画像は送信しません"]]}
+  steps={[
+    { t: "画像を選ぶ", d: "並べて撮った写真やスキャンした画像を、枠の中にドラッグ＆ドロップするか、「ファイルを選択」から選んでください。区切りを自動で見つけて、線と番号を表示します。" },
+    { t: "区切りを確かめる", d: "線がずれていたら、画像をクリックして区切りを足したり消したりできます。段の区切り（横の線）を直すときは、「段の区切り」に切り替えるか、Shift を押しながらクリックします。" },
+    { t: "ZIPで保存", d: "PNGかJPEGを選んで「ZIPで保存」を押すと、1つずつの画像と、番号付き・区切り線入りの全体図をまとめて保存します。" },
+  ]}
+  scenes={SCENES}
+  faq={FAQ}
+  about={[
+    ["しくみ", "AIは使わず、画像の色の数値から区切りを探します。すき間を空けて並べたものは「背景の色だけが続く行・列」を、敷き詰めたものは「両側で色が切り替わる線」を区切りにします。"],
+    ["保存", "画像と切り出した結果は、どこにも送らず、保存もしません。ページを閉じると消えます。"],
+    ["書き出せる形", "1つずつの画像は .png か .jpg、全体図は .jpg、位置の記録は .json で、まとめて .zip で保存します。"],
+  ]}
+  relatedSub="PDFに貼られた写真なら、PDFばらし屋で取り出せます。"
+  corp="たとえば「点検表の写真から、マスごとのチェックを読み取ってExcelにする」ような、業務に合わせた専用ツールもつくれます。"
+  updated="2026-10-26"
+>
+  <div class="tp-panel isp" id="isp">
+    <!-- 1. 画像を選ぶ -->
+    <div class="isp-pick" data-stage="pick">
+      <label class="drop" id="isp-drop">
+        <input type="file" id="isp-file" accept="image/*" />
+        <span class="drop-ic"><Icon name="upload" size={26} /></span>
+        <span class="drop-t">画像をここにドロップ</span>
+        <span class="drop-d">または</span>
+        <span class="btn btn-primary btn-lg"><Icon name="image" size={17} />ファイルを選択</span>
+      </label>
+      <p class="prog" id="isp-opening" hidden><span class="spin dark" aria-hidden="true"></span><span role="status">画像を調べています…</span></p>
+      <div class="msgs" id="isp-pick-msgs"></div>
+    </div>
+
+    <!-- 2. 区切りを確かめて保存 -->
+    <div class="isp-work" data-stage="work" hidden>
+      <div class="isp-file">
+        <span class="isp-file-ic"><Icon name="image" size={22} /></span>
+        <div class="isp-file-main">
+          <p class="isp-name" id="isp-name"></p>
+          <p class="isp-meta" id="isp-meta"></p>
+        </div>
+        <button type="button" class="btn btn-ghost" id="isp-reset"><Icon name="reset" size={15} />別の画像にする</button>
+      </div>
+
+      <div class="sets">
+        <div class="set">
+          <span class="set-l">並べ方</span>
+          <div class="pick" data-pick="mode" role="group" aria-label="並べ方">
+            <button type="button" data-v="auto" aria-pressed="true">自動</button>
+            <button type="button" data-v="gap" aria-pressed="false">すき間あり</button>
+            <button type="button" data-v="tile" aria-pressed="false">敷き詰め</button>
+          </div>
+        </div>
+      </div>
+      <details class="more">
+        <summary><Icon name="chevron" size={16} />細かく調整する</summary>
+        <div class="more-body">
+          <div class="set">
+            <span class="set-l">段の向き<small>段が横に流れるか、縦に流れるか</small></span>
+            <div class="pick" data-pick="orient" role="group" aria-label="段の向き">
+              <button type="button" data-v="auto" aria-pressed="true">自動</button>
+              <button type="button" data-v="h" aria-pressed="false">横</button>
+              <button type="button" data-v="v" aria-pressed="false">縦</button>
+            </div>
+          </div>
+          <label class="fld">
+            <span class="fld-l">区切りの見つけやすさ <output id="isp-sens-out" for="isp-sens">50</output></span>
+            <input type="range" id="isp-sens" min="0" max="100" value="50" />
+            <span class="fld-hint">上げると、色の差が小さい区切りも拾います。模様で切れすぎるときは下げてください。</span>
+          </label>
+        </div>
+      </details>
+
+      <div class="out-head">
+        <div>
+          <p class="out-t" id="isp-out-t" role="status"></p>
+          <p class="out-d" id="isp-out-d"></p>
+        </div>
+        <div class="acts">
+          <div class="pick" data-pick="fmt" role="group" aria-label="保存の形式">
+            <button type="button" data-v="png" aria-pressed="true">PNG</button>
+            <button type="button" data-v="jpg" aria-pressed="false">JPEG（軽い）</button>
+          </div>
+          <button type="button" class="btn btn-primary" id="isp-save"><Icon name="download" size={17} />ZIPで保存</button>
+        </div>
+      </div>
+      <div class="prog" id="isp-prog" hidden>
+        <span class="spin dark" aria-hidden="true"></span>
+        <span id="isp-prog-t" role="status"></span>
+        <span class="prog-bar"><i></i></span>
+      </div>
+      <div class="msgs" id="isp-msgs"></div>
+
+      <figure class="isp-fig">
+        <canvas id="isp-canvas" width="1" height="1" aria-label="見つけた区切りと番号を重ねた画像"></canvas>
+        <figcaption class="isp-edit">
+          <span class="isp-edit-l">クリックで足す・消す</span>
+          <div class="pick" data-pick="edit" role="group" aria-label="クリックで直す区切り">
+            <button type="button" data-v="end" aria-pressed="true"><i class="isp-key end" aria-hidden="true"></i>段の中の区切り</button>
+            <button type="button" data-v="long" aria-pressed="false"><i class="isp-key long" aria-hidden="true"></i>段の区切り</button>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="isp-redo"><Icon name="reset" size={14} />自動に戻す</button>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</ToolPage>
+
+<script>
+  import "../../scripts/tools/image-split.js";
+</script>
+
+<style is:global>
+  .isp{padding:var(--g-md)}
+  @media(max-width:560px){.isp{padding:var(--g-sm)}}
+  .isp-pick{display:flex;flex-direction:column;gap:var(--g-sm)}
+  .isp-work{display:flex;flex-direction:column;gap:var(--g-sm)}
+  .isp-file{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:var(--g-sm);border-bottom:1px solid var(--line)}
+  .isp-file-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--primary-ink);background:var(--primary-soft);flex-shrink:0}
+  .isp-file-main{flex:1 1 180px;min-width:0} /* 狭い画面では「別の画像にする」を下の行に回し、ファイル名を折り返させない */
+  .isp-name{font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--ink);overflow-wrap:anywhere}
+  .isp-meta{font-size:14px;color:var(--muted);margin-top:2px}
+  .isp .sets{border-top:none}
+  .isp .more-body .set{border-bottom:none;padding:0}
+  .isp input[type="range"]{width:100%;min-height:44px;accent-color:var(--primary)}
+  .isp .out-head{margin-bottom:0}
+  .spin.dark{border-color:var(--line-2);border-top-color:var(--primary);flex-shrink:0}
+  .isp-fig{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .isp-fig canvas{display:block;width:100%;height:auto;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--paper);cursor:crosshair}
+  .isp-edit{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+  .isp-edit-l{font-weight:700;font-size:14px;color:var(--ink-2)}
+  .isp-edit .btn-sm{margin-left:auto}
+  .isp-key{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  .isp-key.end{background:#e6007e}
+  .isp-key.long{background:#00b8d4}
+</style>
