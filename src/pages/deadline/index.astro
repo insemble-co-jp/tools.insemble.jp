@@ -11,8 +11,8 @@ const FAQ = [
   { q: "データが消えることはありますか？", a: "あります。ブラウザの「閲覧履歴データの削除」などでサイトのデータを消すと、入れた締切も一緒に消えます。シークレットウィンドウ（履歴を残さない画面）で使った場合は、ウィンドウを閉じると消えます。大事な締切は、ときどき「Excelに書き出す（バックアップにも）」でファイルに保存しておくと、消えても手元に残ります。" },
   { q: "日付だけを入れたとき、期限は何時になりますか？", a: "その日の23時59分59秒までとして数えます。たとえば10月10日とだけ入れると、10月10日が終わる瞬間までが残り時間になります。時刻を決めたいときは、「12:00」「18:00」などのボタンを押すか、時刻の欄で選んでください。時刻は、お使いの端末の時計（タイムゾーン＝地域ごとの標準時）に合わせています。" },
   { q: "入れたあとで、締切の名前や期限の日時を変えられますか？", a: "変えられます。締切のカードの名前や、今日やることの文字を押すと、その場で書き換えられます。Enter キーを押すか、ほかの場所を押すと保存し、Esc キーを押すと元の名前に戻ります。期限の日時は、カードの右上にある日時を押すと、入力欄が開いて変えられます。「明日」「18:00」などのボタンも使えます。完了にした締切は、「戻す」で未完了にしてから変えてください。" },
-  { q: "Notion・Excel・スプレッドシートの締切をまとめて入れられますか？", a: "できます。「締切を追加」を押し、入力欄の上にある「Notion・Excelからまとめて貼り付け」に切り替えてから、1行に1件ずつ「タスク名」と「期限」を貼り付けてください。区切りは、タブ（Excelやスプレッドシートからコピーしたときの区切り）、カンマ、2つ以上の空白のどれでも読み取ります。期限は「2026-10-10」「2026/10/10」「10月10日」などの書き方で入れられ、後ろに「18:00」のように時刻を付けることもできます。", cta: { label: "まとめて貼り付ける", do: "bulk" } },
-  { q: "登録した締切をNotionやExcelに持っていけますか？", a: "持っていけます。ツールの下にある「コピーしてNotion・Excelに貼る」を押すと、まだ完了していない締切を「タスク名」と「期限」の2列でコピーします。Notionの表やExcel・スプレッドシートに、そのまま貼り付けられます。残り日数が自動で変わるファイルにしたいときは、「Excelに書き出す（バックアップにも）」を押してください。Excelで開くたびに、その日の残り日数が計算し直されます。" },
+  { q: "Notion・Excelとのあいだで、締切をまとめて出し入れできますか？", a: "できます。入れるときは、「締切を追加」を押し、入力欄の上にある「Notion・Excelからまとめて貼り付け」に切り替えて、1行に1件ずつ「タスク名」と「期限」を貼り付けてください。3列目に担当（誰の締切か）があれば、それも読み取ります。Notionの表は、見出しの行（「名前」「担当者」「期限」など）ごとコピーして貼ると、列の名前から担当と期限を見分け、ステータスなどほかの列は読み飛ばします。期限は「2026-10-10」「2026/10/10」「10月10日」などの書き方で入れられ、後ろに「18:00」のように時刻も付けられます。期間（11月20日 → 11月22日）は、終わりの日を期限にします。持ち出すときは、ツールの下の「コピーしてNotion・Excelに貼る」で「タスク名」「期限」（人の締切があれば「担当」も）の列をコピーできます。残り日数が自動で変わるファイルにしたいときは、「Excelに書き出す（バックアップにも）」を押してください。", cta: { label: "まとめて貼り付ける", do: "bulk" } },
+  { q: "チームメンバーの締切も、一緒に数えられますか？", a: "数えられます。締切を入れるときに「誰の締切」に名前を入れると、カードに名前が付きます。空欄のままなら自分の締切です。人の締切があると、一覧の上に「すべて」「自分」と名前ごとのボタンが出て、押した人の締切だけに絞り込めます。絞り込むと、上の1行のお知らせ・ミニ表示・タブ名も、その人の締切だけで数えます。入れた名前も、このブラウザの中にだけ保存し、メンバーには送られません。" },
   { q: "パソコンに常に表示しておけますか？", a: "できます。Chrome や Edge では、ツールのいちばん上にある「アプリとして置く」を押すと、ブラウザとは別のウィンドウで開くアプリとして置けます。画面の隅に置いて「ミニ」を押すと、ウィンドウが締切を1行ずつ並べた小さな表示に縮み、もう一度押すと元の大きさに戻ります。デスクトップやタスクバーのアイコンを右クリックすると、「締切を追加」「今日やることを書く」をすぐに開けます。Mac の Safari では、macOS 14 以降なら、メニューバーの「ファイル」から「Dockに追加」を選ぶと置けます。iPhone・Android では、共有メニューやブラウザのメニューにある「ホーム画面に追加」から置けます。置き方が分からないときは、「アプリとして置く」を押すと、お使いのブラウザでの手順を表示します。Firefox のパソコン版はアプリとして置けないため、Chrome・Edge・Safari で開いてください。置いたあとは、ネットにつながっていなくても使えます。", cta: { label: "アプリとして置く", do: "place" } },
   { q: "締切の時間になったら、通知は来ますか？", a: "通知や音は出しません。作業の邪魔をしないよう、画面の中で静かに知らせます。ツールの上の1行のお知らせと、締切のカードの色が、締切が近づくにつれて変わります。ブラウザのタブ名にも「あと3時間 | あと何日？」のように、いちばん近い締切までの残り時間が出るので、ほかのタブで作業していても目に入ります。期日の当日にメールで知らせてほしいときは、同じインセンブルがつくっている「きじかん」をお使いください。使い分けは、この「よくある質問」のすぐ上にある、きじかんの紹介をご覧ください。" },
 ];
@@ -25,6 +25,7 @@ const SCENES = {
       items: [
         ["公開日・納品日が重なって、どれから手をつけるか迷う", "締切は近い順に並び、いちばん近いものがいちばん大きく表示されます。ツールの上の1行のお知らせで、いま急ぐべき締切がひと目で分かります。"],
         ["案件ごとの締切をNotionで管理しているが、毎回開くのが面倒", "Notionの表をコピーして「Notion・Excelからまとめて貼り付け」に貼れば、まとめて入ります。アプリとして画面の隅に置いておけば、Notionを開かなくても残り時間が目に入ります。"],
+        ["メンバーそれぞれの担当の締切も、Notionを開かずに把握しておきたい", "Notionの表を担当者の列ごと貼り付けると、締切に名前が付きます。一覧の上のボタンで「自分」や人ごとに絞り込め、全員分を近い順に並べて数えます。"],
         ["見積書の提出が「今日の何時まで」かを、うっかり忘れそう", "時刻まで入れておくと、当日は「あと8時間12分」のように分単位で数えるので、残りの持ち時間がすぐに分かります。"],
       ],
     },
@@ -80,9 +81,9 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
     ["アプリとして", "PWA（ホーム画面やデスクトップに置けるWebアプリ）として使えます。置いたあとは、ネットにつながっていなくても開けます。パソコンの Chrome・Edge で置いた場合は、アイコンを右クリックすると「締切を追加」をすぐに開けます。"],
   ]}
   relatedSub="締切に向けた進行表をExcelで配りたいときは、スケジュール→Excelメーカーで作れます。"
-  corp="たとえば「チーム全員の締切を1つの画面にまとめて、近いものから知らせる」ような、社内向けの専用ツールもつくれます。"
+  corp="たとえば「Notionのタスクを自動で読み込み、チーム全員が同じ締切の一覧を見られる」ような、社内向けの専用ツールもつくれます。"
   appCategory="BusinessApplication"
-  updated="2026-10-08"
+  updated="2026-11-12"
   app={{ manifest: "/deadline/manifest.webmanifest", icon: "/deadline/apple-touch-icon.png", themeColor: "#F4F7F7" }}
   fonts={FONTS}
 >
@@ -109,6 +110,7 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
 
       <!-- ミニ（常駐用の計器だけ） -->
       <div class="an-mini" id="an-mini" hidden>
+        <p class="an-mfil" id="an-mfil" hidden></p>
         <ul class="an-mlist" id="an-mlist" aria-label="締切"></ul>
         <p class="an-mempty" id="an-mempty" hidden>締切はまだありません</p>
         <p class="an-mtoday"><b id="an-mcount"></b><span id="an-mnext"></span></p>
@@ -121,6 +123,9 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
             <span class="an-sn" id="an-dl-n"></span>
             <button type="button" class="an-add" id="an-open" aria-keyshortcuts="N" title="ショートカット: N"><Fragment set:html={PLUS(11)} />締切を追加</button>
           </div>
+
+          <!-- 誰の締切を見るか（人の締切があるときだけ。ボタンは JS で入れる） -->
+          <div class="an-filter" id="an-filter" role="group" aria-label="誰の締切を表示するか" hidden></div>
 
           <p class="an-samples" id="an-samples" hidden>
             <span>いま表示しているのはサンプルです。自分の締切か今日やることを1つ入れると、サンプルは自動で消えます。</span>
@@ -163,10 +168,15 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
                 <input class="an-pick" id="an-time" type="time" aria-label="時刻を選ぶ" />
               </fieldset>
               <p class="an-hint">日付だけのときは、その日の23:59までとして数えます。時刻を選ぶと変えられます。</p>
+              <fieldset class="an-fs">
+                <legend>誰の締切</legend>
+                <div class="an-chips" id="an-wchips"></div>
+                <input class="an-pick an-who-in" id="an-who" type="text" placeholder="空欄なら自分" aria-label="誰の締切か（空欄なら自分）" maxlength="30" autocomplete="off" enterkeyhint="done" />
+              </fieldset>
               <p class="an-kj" id="an-kj" hidden>1か月以上先の期日は、インセンブルの「<a href={KIJICAN("composer")} target="_blank" rel="noopener">きじかん</a>」に登録しておくと、当日にメールで知らせてくれます。</p>
             </div>
             <div class="an-bulk" id="an-bulk" hidden>
-              <label class="an-blabel" for="an-bulk-in">1行に1件ずつ、「タスク名」と「期限」をタブかカンマで区切って貼り付けてください。</label>
+              <label class="an-blabel" for="an-bulk-in">1行に1件ずつ、「タスク名」と「期限」をタブかカンマで区切って貼り付けてください。3列目に担当を入れると、人ごとに分けられます。</label>
               <pre class="an-eg" id="an-eg" aria-label="入力の例"></pre>
               <textarea class="an-bta" id="an-bulk-in" rows="5" spellcheck="false" placeholder="ここに貼り付け"></textarea>
               <p class="an-bres" id="an-bres" aria-live="polite"></p>
@@ -179,6 +189,8 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
           </div>
 
           <div class="an-cards" id="an-cards"></div>
+
+          <p class="an-mempty" id="an-fempty" role="status" hidden></p>
 
           <div class="an-empty" id="an-empty" hidden>
             <p class="an-eh"><span class="an-ex">例</span>企画書の提出</p>
@@ -339,6 +351,11 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
   .an-bres{font-size:12.5px;line-height:1.6;color:#4E5E61}
   .an-bres b{color:#1B2A2D}
   .an-bres .is-bad{color:#C2410C}
+  .an-bprev{list-style:none;display:flex;flex-direction:column;margin-top:6px;border-top:1px dashed #DFE7E8}
+  .an-bprev li{display:flex;align-items:center;gap:4px 10px;flex-wrap:wrap;padding:5px 0;border-bottom:1px dashed #DFE7E8;font-size:12px}
+  .an-bpt{flex:1;min-width:8em;font-weight:700;color:#1B2A2D;overflow-wrap:anywhere}
+  .an-bprev .an-who{--ink:#1B2A2D;--bd:#CFDADC;--bg:#fff}
+  .an-who-in{width:11em}
   .an-cfoot{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding-top:12px;border-top:1px dashed #DFE7E8}
   .an-prev{display:flex;flex-direction:column;gap:2px;margin-right:auto}
   .an-prev span{font-size:11px;color:#617275}
@@ -367,6 +384,10 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
   .an-dot{width:7px;height:7px;border-radius:50%;background:var(--dot)}
   :is(.an-card,.an-mlist li)[data-st="urgent"] .an-dot{animation:aw-breathe 1.8s ease-in-out infinite}
   :is(.an-card,.an-mlist li)[data-st="over"] .an-dot{animation:aw-breathe 3s ease-in-out infinite}
+  /* 誰の締切か（カード・貼り付けの確認）。色は状態に合わせる */
+  .an-who{max-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700;color:var(--ink);background:var(--bg);border:1px solid var(--bd);padding:1px 7px;border-radius:5px}
+  .an-filter{display:flex;flex-wrap:wrap;gap:6px}
+  .an-filter .an-chip{height:28px;padding:0 10px;font-size:12px;max-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .an-smp{font-size:10.5px;font-weight:700;color:var(--sub);border:1px solid var(--bd);padding:1px 6px;border-radius:5px}
   .an-date{margin-left:auto;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
   .an-ttl{font-size:15px;font-weight:700;line-height:1.4;text-wrap:pretty;overflow-wrap:anywhere}
@@ -491,7 +512,9 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
   .an-mlist{list-style:none;display:flex;flex-direction:column;gap:4px}
   .an-mlist li{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;background:var(--bg);border:1px solid var(--bd);color:var(--ink);transition:background-color .8s,border-color .8s}
   .an-mlist .an-mt{flex:1;min-width:0;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .an-mwho{flex:none;max-width:6em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700;color:var(--sub)}
   .an-mshort{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--num);white-space:nowrap}
+  .an-mfil{font-size:11px;font-weight:700;color:#4E5E61;padding:0 2px}
   .an-mempty{padding:12px;border:1px dashed #CFDADC;border-radius:12px;font-size:13px;color:#617275}
   .an-mtoday{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;background:#EAF4F3;border:1px solid #CFE3E1;font-size:12px}
   .an-mtoday b{white-space:nowrap}
