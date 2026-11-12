@@ -11,7 +11,7 @@ const FAQ = [
   { q: "写真は何枚あればいいですか？", a: "2枚から遊べます。1枚の写真から同じカードが2枚できるので、8枚あれば16枚のカードになります。小さな子どもには4〜6ペア、慣れてきたら8〜12ペアくらいがちょうどよい難しさです。写真は最大24枚（48枚のカード）まで使えます。" },
   { q: "写真がなくても遊べますか？", a: "遊べます。「どうぶつ」「くだもの・やさい」「のりもの」「うみのいきもの」の絵柄を選ぶと、写真なしですぐに始められます。印刷もできます。" },
   { q: "印刷するときのコツは？", a: "A4の紙に、6cm角のカードが12枚ずつ並びます。厚めの紙（はがき用紙など）に刷ると、裏から絵が透けにくく、めくりやすくなります。「うら面も印刷する」をオンにすると、カードの裏の模様も刷れるので、両面印刷するか、2枚を貼り合わせてください。印刷の画面で「PDFに保存」を選べば、PDFにしてコンビニなどで印刷することもできます。" },
-  { q: "何人で遊べますか？", a: "画面で遊ぶときは、1人から4人まで選べます。2人以上のときは、そろえた人がもう一回めくれるふつうのルールで、誰の番かとそろえた数を表示します。1人のときは、めくった回数と時間を表示します。" },
+  { q: "何人で遊べますか？", a: "画面で遊ぶときは、「ひとりで」と「みんなで（2〜4人）」から選べます。「ひとりで」は、全部そろえるまでにめくった回数と時間を表示します。「みんなで」は、順番にめくって、そろえた人がもう一回めくれるふつうのルールです。誰の番かと、それぞれがそろえた数を表示し、最後に勝ち負けを出します。" },
   { q: "タブレットで遊べますか？", a: "遊べます。「大きく表示」を押すと、カードだけを画面いっぱいに出せるので、タブレットを机に置いてみんなで囲むのにも向いています。" },
   { q: "写真の顔が切れてしまいます", a: "写真は、真ん中を正方形に切り抜いてカードにします。顔や見せたいものが真ん中にある写真を選ぶか、先にスマホの写真アプリで正方形に切り抜いてから入れてください。" },
 ];
@@ -50,7 +50,7 @@ const SCENES = {
 <ToolPage
   slug="memory-game"
   title="写真で神経衰弱を手作り・印刷｜神経衰弱メーカー｜insemble tools"
-  description="家族の写真や好きな絵で、神経衰弱のカードを作れる無料ツールです。スマホやタブレットでそのまま遊べて、1〜4人で対戦もできます。印刷すれば、切り取り線つきの手作りカードに。写真はブラウザの中だけで処理し、送信しません。"
+  description="家族の写真や好きな絵で、神経衰弱のカードを作れる無料ツールです。スマホやタブレットでそのまま遊べて、2〜4人で対戦もできます。印刷すれば、切り取り線つきの手作りカードに。写真はブラウザの中だけで処理し、送信しません。"
   ogTitle="神経衰弱メーカー｜家族の写真で、神経衰弱を手作り"
   h1="神経衰弱メーカー｜写真で神経衰弱を作って遊べる無料ツール"
   lead={["家族の写真が、", "神経衰弱", "になる。"]}
@@ -58,7 +58,7 @@ const SCENES = {
   meta={[["check", "端末内で処理"], ["check", "写真は送信しません"]]}
   steps={[
     { t: "写真か絵柄を選ぶ", d: "「写真」を選んで、使いたい写真を入れます（2〜24枚）。写真がなければ、どうぶつなどの絵柄を選んでください。" },
-    { t: "ペアの数と人数を決める", d: "カードの組の数と、遊ぶ人数（1〜4人）を選びます。小さな子どもには、4〜6ペアくらいがおすすめです。" },
+    { t: "ペアの数と遊び方を決める", d: "カードの組の数と、「ひとりで」か「みんなで（2〜4人）」かを選びます。小さな子どもには、4〜6ペアくらいがおすすめです。" },
     { t: "遊ぶ・印刷する", d: "「画面で遊ぶ」を押すと、カードが並んでその場で遊べます。「印刷する」を押すと、A4に切り取り線つきのカードを刷れます。" },
   ]}
   scenes={SCENES}
@@ -98,10 +98,16 @@ const SCENES = {
             <Stepper id="mm-pairs" label="ペアの数" value={8} min={2} max={24} />
           </div>
           <div class="set">
-            <span class="set-l">あそぶ人数</span>
-            <div class="pick" data-pick="players" role="group" aria-label="あそぶ人数">
-              <button type="button" data-v="1" aria-pressed="true">1人</button>
-              <button type="button" data-v="2" aria-pressed="false">2人</button>
+            <span class="set-l">遊び方<small id="mm-mode-d" aria-live="polite">ひとりで全部そろえる。めくった回数と時間が出ます</small></span>
+            <div class="pick" data-pick="mode" role="group" aria-label="遊び方">
+              <button type="button" data-v="solo" aria-pressed="true">ひとりで</button>
+              <button type="button" data-v="vs" aria-pressed="false">みんなで</button>
+            </div>
+          </div>
+          <div class="set" id="mm-players" hidden>
+            <span class="set-l">人数</span>
+            <div class="pick" data-pick="players" role="group" aria-label="人数">
+              <button type="button" data-v="2" aria-pressed="true">2人</button>
               <button type="button" data-v="3" aria-pressed="false">3人</button>
               <button type="button" data-v="4" aria-pressed="false">4人</button>
             </div>
@@ -147,7 +153,7 @@ const SCENES = {
 
 <style is:global>
   .mm-photo{display:flex;flex-direction:column;gap:10px}
-  .mm-photo[hidden]{display:none}
+  .mm-photo[hidden],#mm-players[hidden]{display:none}
   .mm-printrow{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
   .mm-printrow .btn{min-height:44px}
   .mm-stage{display:flex;flex-direction:column;gap:var(--g-sm)}

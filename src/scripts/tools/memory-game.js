@@ -1,6 +1,6 @@
 /* ===========================================================
    神経衰弱メーカー（/memory-game/）
-   写真（または絵文字の絵柄）を選ぶ → 画面で遊ぶ（1〜4人）／印刷して手作りカードにする
+   写真（または絵文字の絵柄）を選ぶ → 画面で遊ぶ（ひとりで／みんなで2〜4人）／印刷して手作りカードにする
    写真はブラウザの中だけで扱い、どこにも送らない（scripts/tools/pictures.js）
    =========================================================== */
 import { $, showMsgs, picker, stepper, reduceMotion, reveal } from "./common.js";
@@ -34,7 +34,17 @@ const el = {
 
 const photos = pictureInput({ drop: el.drop, input: el.file, list: el.list, msgs: el.picMsgs, max: MAX_PAIRS, onChange: () => summary() });
 const src = picker($('[data-pick="src"]'), (v) => { el.photoBox.hidden = v !== "photo"; summary(); });
+/* 遊び方：ひとりで（回数と時間）／みんなで（2〜4人で順番に。人数はこのときだけ出す） */
+const MODE_D = {
+  solo: "ひとりで全部そろえる。めくった回数と時間が出ます",
+  vs: "順番にめくって、そろえた数を競う。そろえた人はもう一回",
+};
+const mode = picker($('[data-pick="mode"]'), (v) => {
+  $("#mm-players").hidden = v !== "vs";
+  $("#mm-mode-d").textContent = MODE_D[v];
+});
 const players = picker($('[data-pick="players"]'));
+const playerCount = () => (mode.get() === "vs" ? Number(players.get()) : 1);
 const pairs = stepper($("#mm-pairs"), () => summary());
 
 /* いま使える絵柄（写真か、絵文字のセット） */
@@ -73,7 +83,7 @@ function start() {
   const items = chosen();
   const deck = shuffle(items.flatMap((item, id) => [{ item, id }, { item, id }]));
   stopTimer();
-  game = { deck, open: [], done: new Map(), turn: 0, scores: Array(Number(players.get())).fill(0), flips: 0, players: Number(players.get()), lock: false, t0: 0, timer: 0 };
+  game = { deck, open: [], done: new Map(), turn: 0, scores: Array(playerCount()).fill(0), flips: 0, players: playerCount(), lock: false, t0: 0, timer: 0 };
   const n = deck.length;
   const cols = n <= 12 ? 4 : n <= 20 ? 5 : n <= 30 ? 6 : 8;
   el.board.style.setProperty("--cols", cols);
