@@ -3,7 +3,7 @@
    PDFを選ぶ → テキスト／画像／ページ画像を取り出す → コピー・保存・ZIP
    読み取りは src/lib/pdf-extract.js（pdf.js は PDF を選んだときに初めて読み込む）
    =========================================================== */
-import { $, $$, esc, svg, download, copyText, showMsgs, safeName, flash } from "./common.js";
+import { $, $$, esc, svg, download, copyText, showMsgs, safeName, flash, sampleFile, SAMPLE_ERR } from "./common.js";
 import { makeZip } from "../../lib/zip.js";
 
 const MAX_MB = 300;
@@ -55,6 +55,21 @@ el.drop.addEventListener("drop", (e) => {
   if (files[0]) take(files[0], files.length > 1);
 });
 el.file.addEventListener("change", () => { if (el.file.files[0]) take(el.file.files[0]); el.file.value = ""; });
+
+/* 見本で試す：見本のPDFを開いて、そのまま文字を取り出すところまで進める */
+$("#pdf-sample")?.addEventListener("click", async (e) => {
+  const b = e.currentTarget;
+  if (busy || openingN) return;
+  b.disabled = true;
+  try {
+    await take(await sampleFile(b, "application/pdf"));
+    if (state) await run("text");
+  } catch (err) {
+    showMsgs(el.pickMsgs, [["err", SAMPLE_ERR]]);
+  } finally {
+    b.disabled = false;
+  }
+});
 
 /* 開いているあいだ：選ぶ欄の下に「PDFを開いています…」を出し、続けて選べないようにする（大きなPDFで、何も起きていないように見えないように） */
 let openingN = 0;

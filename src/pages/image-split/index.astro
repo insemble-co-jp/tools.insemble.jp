@@ -3,6 +3,15 @@
    画像はブラウザの中だけで読む（サーバーには送らない）。区切りの見つけ方は src/lib/image-split.js */
 import ToolPage from "../../layouts/ToolPage.astro";
 import Icon from "../../components/Icon.astro";
+import { SAMPLES } from "../../data/samples.js";
+
+/* 見本（npm run samples で作る）。区切り線は SVG、番号は文字のまま重ねる（文字を画像にしない）。
+   1つずつの画像は、同じ見本画像を背景にして、その場所だけ見せる */
+const SS = SAMPLES.split;
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const pct = (a: number, b: number) => `${+((a / b) * 100).toFixed(3)}%`;
+const crop = (r: { x: number; y: number; w: number; h: number }) =>
+  `aspect-ratio:${r.w}/${r.h};background-image:url(${SS.src});background-size:${pct(SS.W, r.w)} ${pct(SS.H, r.h)};background-position:${pct(r.x, SS.W - r.w)} ${pct(r.y, SS.H - r.h)}`;
 
 const FAQ = [
   { q: "画像はどこかに送られますか？", a: "送られません。区切りを見つけるのも切り出すのも、すべてお使いのブラウザの中で行います。画像が運営者のサーバーや外部のサービスに届くことはありません。ページを閉じると、読み込んだ画像も消えます。" },
@@ -73,7 +82,7 @@ const SCENES = {
   <div class="tp-panel isp" id="isp">
     <!-- 1. 画像を選ぶ -->
     <div class="isp-pick" data-stage="pick">
-      <label class="drop" id="isp-drop">
+      <label class="drop mid" id="isp-drop">
         <input type="file" id="isp-file" accept="image/*" />
         <span class="drop-ic"><Icon name="upload" size={26} /></span>
         <span class="drop-t">画像をここにドロップ</span>
@@ -82,6 +91,28 @@ const SCENES = {
       </label>
       <p class="prog" id="isp-opening" hidden><span class="spin dark" aria-hidden="true"></span><span role="status">画像を調べています…</span></p>
       <div class="msgs" id="isp-pick-msgs"></div>
+
+      <!-- 見本：画像を入れる前から、分けた結果を見せる（入れると、この欄ごと隠れる） -->
+      <section class="sample" aria-label="見本の結果" data-nosnippet>
+        <div class="sample-h">
+          <span class="sample-tag">見本</span>
+          <p class="sample-t">並べて撮った写真を、<b>{SS.pieces.length}</b>個に分けます</p>
+          <button type="button" class="btn btn-ghost btn-sm sample-try" id="isp-sample" data-src={SS.src} data-name={SS.name}><Icon name="play" size={15} />この見本で試す</button>
+        </div>
+        <div class="sample-body isp-sample">
+          <figure class="isp-sv" style={`aspect-ratio:${SS.W}/${SS.H}`}>
+            <img src={SS.src} width={SS.W} height={SS.H} alt={`見本：コースター${SS.pieces.length}枚を並べて撮った写真`} decoding="async" />
+            <svg viewBox={`0 0 ${SS.W} ${SS.H}`} preserveAspectRatio="none" aria-hidden="true">
+              {SS.lines.long.map(([x1, y1, x2, y2]) => <line class="ln-long" x1={x1} y1={y1} x2={x2} y2={y2} />)}
+              {SS.lines.end.map(([x1, y1, x2, y2]) => <line class="ln-end" x1={x1} y1={y1} x2={x2} y2={y2} />)}
+            </svg>
+            {SS.pieces.map((pc) => <span class="isp-sv-n" aria-hidden="true" style={`left:${pct(pc.x + pc.w / 2, SS.W)};top:${pct(pc.y + pc.h / 2, SS.H)}`}>{pad2(pc.row)}-{pad2(pc.col)}</span>)}
+          </figure>
+          <ul class="isp-sp-list" aria-label="切り出した画像（見本）">
+            {SS.pieces.map((pc) => <li><span class="isp-sp" role="img" aria-label={`${pad2(pc.row)}-${pad2(pc.col)}の画像`} style={crop(pc)}></span><span class="isp-sp-n">{pad2(pc.row)}-{pad2(pc.col)}</span></li>)}
+          </ul>
+        </div>
+      </section>
     </div>
 
     <!-- 2. 区切りを確かめて保存 -->
@@ -167,6 +198,20 @@ const SCENES = {
   .isp{padding:var(--g-md)}
   @media(max-width:560px){.isp{padding:var(--g-sm)}}
   .isp-pick{display:flex;flex-direction:column;gap:var(--g-sm)}
+  .isp-pick .sample{margin-top:var(--g-xs)}
+  /* 見本：左に区切り線入りの写真、右に切り出した1つずつ。スマホでは縦に並べる */
+  .isp-sample{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:var(--g-sm);align-items:start}
+  .isp-sv{position:relative;border-radius:var(--r-sm);overflow:hidden;background:var(--paper)}
+  .isp-sv img,.isp-sv svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .isp-sv line{stroke-width:3;vector-effect:non-scaling-stroke}
+  .isp-sv .ln-long{stroke:#00b8d4}
+  .isp-sv .ln-end{stroke:#e6007e}
+  .isp-sv-n{position:absolute;transform:translate(-50%,-50%);font-weight:700;font-size:12px;line-height:1;color:#fff;background:rgba(0,0,0,.66);border-radius:4px;padding:4px 6px;font-variant-numeric:tabular-nums}
+  .isp-sp-list{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .isp-sp-list li{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .isp-sp{display:block;width:100%;border-radius:6px;background-color:var(--paper);background-repeat:no-repeat;border:1px solid var(--line)}
+  .isp-sp-n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  @media(max-width:760px){.isp-sample{grid-template-columns:minmax(0,1fr)}.isp-sp-list{grid-template-columns:repeat(6,minmax(0,1fr))}}
   .isp-work{display:flex;flex-direction:column;gap:var(--g-sm)}
   .isp-file{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:var(--g-sm);border-bottom:1px solid var(--line)}
   .isp-file-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--primary-ink);background:var(--primary-soft);flex-shrink:0}

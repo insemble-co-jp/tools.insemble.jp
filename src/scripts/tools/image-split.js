@@ -3,7 +3,7 @@
    画像を選ぶ → 区切りを自動で見つける → クリックで直す → ZIP（1枚ずつ＋番号付きの全体図＋区切り線の全体図）
    画像処理は src/lib/image-split.js。すべてブラウザの中で行い、画像はどこにも送らない
    =========================================================== */
-import { $, showMsgs, safeName, download, picker, canvasToBlob, FONT } from "./common.js";
+import { $, showMsgs, safeName, download, picker, canvasToBlob, FONT, sampleFile, SAMPLE_ERR } from "./common.js";
 import { makeZip } from "../../lib/zip.js";
 import * as L from "../../lib/image-split.js";
 
@@ -75,6 +75,20 @@ el.drop.addEventListener("drop", (e) => {
   if (files[0] && !busy) take(files[0], files.length > 1);
 });
 el.file.addEventListener("change", () => { if (el.file.files[0] && !busy) take(el.file.files[0]); el.file.value = ""; });
+
+/* 見本で試す：見本の画像を開いて、区切りを見つけるところまで進める */
+$("#isp-sample")?.addEventListener("click", async (e) => {
+  const b = e.currentTarget;
+  if (busy) return;
+  b.disabled = true;
+  try {
+    await take(await sampleFile(b, "image/webp"));
+  } catch (err) {
+    showMsgs(el.pickMsgs, [["err", SAMPLE_ERR]]);
+  } finally {
+    b.disabled = false;
+  }
+});
 
 function loadImage(file) {
   const url = URL.createObjectURL(file), img = new Image();

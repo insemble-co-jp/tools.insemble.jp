@@ -91,7 +91,7 @@ function start() {
   el.stage.style.setProperty("--ratio", cols / Math.ceil(n / cols)); // 大きく表示のとき、縦に収める
   el.board.innerHTML = deck.map((c, i) => `<button type="button" class="mm-card" data-i="${i}" aria-label="カード${i + 1}（うら）"><span class="mm-in"><span class="mm-back" aria-hidden="true"></span><span class="mm-face">${faceHTML(c.item)}</span></span></button>`).join("");
   el.stage.hidden = false;
-  el.out.querySelector(".empty")?.remove();
+  el.out.querySelector(".sample")?.remove(); // 見本の盤面を外す
   el.end.hidden = true;
   drawStatus();
   reveal(el.stage);

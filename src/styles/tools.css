@@ -113,6 +113,18 @@
 .drop-t{font-family:var(--font-display);font-weight:800;font-size:clamp(18px,2.6vw,22px);color:var(--ink)}
 .drop-d{font-size:13.5px;color:var(--muted)}
 .drop .btn{margin-top:6px;pointer-events:none}
+.drop.mid{padding:var(--g-lg) var(--g-md)}
+
+/* ---------- 見本（ファイルを入れる前から、結果のイメージを見せる。PDFばらし屋・画像ばらし屋・神経衰弱）----------
+   本物の結果とまちがえないよう、「見本」の札と点線の枠をつける。自分のファイルを入れると隠れる */
+.sample{margin-top:var(--g-md)}
+.sample-h{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-bottom:var(--g-xs)}
+.sample-tag{flex-shrink:0;font-family:var(--font-display);font-weight:800;font-size:12px;letter-spacing:.06em;color:var(--primary-ink);background:#fff;border:1.5px solid var(--primary);border-radius:99px;padding:1px 10px}
+.sample-t{font-weight:700;font-size:15px;color:var(--ink)}
+.sample-t b{font-family:var(--font-display);font-size:18px;margin:0 2px}
+.sample-try{margin-left:auto;gap:6px;min-height:44px}
+.sample-body{border:1.5px dashed var(--line-2);border-radius:var(--r);padding:var(--g-sm);background:#fff}
+@media(max-width:560px){.sample-try{margin-left:0;width:100%;justify-content:center}}
 
 /* 進み具合 */
 .prog{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:700;color:var(--ink-2)}

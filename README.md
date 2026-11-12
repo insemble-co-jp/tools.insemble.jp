@@ -58,6 +58,13 @@ npm run preview
   - `public/og/<slug>.png`：ツールごと（`ToolPage.astro` が自動で指定する）
   - どちらも `npm run og` で書き出す（文言は `scripts/og/og.config.mjs`、見た目は `scripts/og/render.mjs`。Google Chrome とネット接続が必要。1枚だけなら `npm run og -- seat`）
   - `public/og/ogp.png`：OGPチェッカー用。これだけはデザインプロジェクトの「OGP画像.html」から作ったもの。文言を変えたらそちらで書き出し直す
+- ツールの見本（ファイルを入れる前から、結果のイメージを見せる）
+  - PDFばらし屋：`public/pdf-extract/sample.pdf`（架空のチラシ）と `sample-page-*.webp`・`sample-image-*.webp`（サムネイル）
+  - 画像ばらし屋：`public/image-split/sample.webp`（並べて撮ったような見本。区切り線は SVG、番号は文字で重ね、1つずつの画像は同じ画像を背景にして切り抜いて見せる）
+  - 数値と文字（区切りの位置・PDFから取り出した文字）は `src/data/samples.js`。手で直さない
+  - どれも `npm run samples` で書き出す（`scripts/samples/render.mjs`。Google Chrome が必要。区切りはツールと同じ `lib/image-split.js`、文字は pdf.js で、できたファイルから本当に取り出す）。切り出しの処理を変えたら、書き出し直して見本とずれないようにする
+  - 神経衰弱の見本の盤面は画像を使わず、`pages/memory-game/index.astro` で絵文字から組み立てる
+  - 「この見本で試す」は `scripts/tools/common.js` の `sampleFile()` で見本を読み込み、選んだファイルと同じ流れに渡す
 - `favicon.svg` ／ `favicon-32.png` ／ `favicon-48.png`（Google検索結果用）／ `apple-touch-icon.png`（180）／ `icon-192.png` ／ `icon-512.png` ／ `site.webmanifest`
 
 ### 公開前に用意するもの

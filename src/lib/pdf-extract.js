@@ -53,6 +53,8 @@ export async function pageText(doc, n) {
   return s
     // PDFによっては「日」が部首の文字（⽇ U+2F47 など）で入っている。その範囲だけ普通の漢字に戻す（全角英数などはそのまま）
     .replace(/[\u2E80-\u2FDF]/g, (c) => c.normalize("NFKC"))
+    // Chrome などで書き出したPDFは、空白が制御文字（\x01 など）で入っていることがある。改行・タブ以外の制御文字は空白にする
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ")
     .replace(/[ \t\u00a0]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 

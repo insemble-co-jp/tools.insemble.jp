@@ -6,6 +6,12 @@ import Icon from "../../components/Icon.astro";
 import Stepper from "../../components/tools/Stepper.astro";
 import { PICTURE_SETS } from "../../data/picture-sets.js";
 
+/* 見本の盤面：開いた瞬間に、どんな画面で遊ぶのかが分かるように（ペアの数の初期値 8 → 16枚）。
+   最初の絵柄（どうぶつ）から8種類を2枚ずつ並べ、そろった1組と、めくった1枚だけを表にする */
+const SAMPLE_ITEMS = PICTURE_SETS[0].items.slice(0, 8);
+const SAMPLE_ORDER = [0, 3, 5, 1, 6, 0, 2, 7, 4, 1, 7, 3, 6, 2, 5, 4];
+const SAMPLE_UP: Record<number, string> = { 0: "got", 5: "got", 2: "up" };
+
 const FAQ = [
   { q: "写真はどこかに送られますか？", a: "送られません。写真はお使いのブラウザの中だけで、カードの形に切り抜いて使います。運営者のサーバーや外部のサービスに届くことはなく、ページを閉じると消えます。" },
   { q: "写真は何枚あればいいですか？", a: "2枚から遊べます。1枚の写真から同じカードが2枚できるので、8枚あれば16枚のカードになります。小さな子どもには4〜6ペア、慣れてきたら8〜12ペアくらいがちょうどよい難しさです。写真は最大24枚（48枚のカード）まで使えます。" },
@@ -78,11 +84,11 @@ const SCENES = {
         <div class="fld">
           <span class="fld-l">カードの絵柄</span>
           <div class="pick" data-pick="src" role="group" aria-label="カードの絵柄">
-            <button type="button" data-v="photo" aria-pressed="true">写真</button>
-            {PICTURE_SETS.map((s) => <button type="button" data-v={s.id} aria-pressed="false">{s.label}</button>)}
+            <button type="button" data-v="photo" aria-pressed="false">写真</button>
+            {PICTURE_SETS.map((s, i) => <button type="button" data-v={s.id} aria-pressed={String(i === 0)}>{s.label}</button>)}
           </div>
         </div>
-        <div class="mm-photo" id="mm-photo">
+        <div class="mm-photo" id="mm-photo" hidden>
           <label class="drop sm" id="mm-drop">
             <input type="file" id="mm-file" accept="image/*" multiple />
             <span class="drop-ic"><Icon name="upload" size={22} /></span>
@@ -122,10 +128,17 @@ const SCENES = {
       </div>
 
       <div class="tp-out" id="mm-out">
-        <div class="empty">
-          <div class="re-ic"><Icon name="cards" size={22} tool /></div>
-          <p class="re-t">ここにカードが並びます</p>
-          <p class="re-d">写真か絵柄を選んで「画面で遊ぶ」を押してください。</p>
+        <!-- 見本：「画面で遊ぶ」を押すと、この盤面が本物に入れ替わる -->
+        <div class="sample mm-sample" data-nosnippet>
+          <div class="sample-h">
+            <span class="sample-tag">見本</span>
+            <p class="sample-t">「画面で遊ぶ」を押すと、ここで遊べます</p>
+          </div>
+          <div class="mm-board" style="--cols:4;--cols-sm:4" aria-hidden="true">
+            {SAMPLE_ORDER.map((k, i) => (
+              <span class={`mm-card${SAMPLE_UP[i] ? " up" : ""}${SAMPLE_UP[i] === "got" ? " got hue-1" : ""}`}><span class="mm-in"><span class="mm-back"></span><span class="mm-face"><span class="face-emoji">{SAMPLE_ITEMS[k]}</span></span></span></span>
+            ))}
+          </div>
         </div>
         <div class="mm-stage" id="mm-stage" hidden>
           <div class="mm-head">
@@ -154,6 +167,9 @@ const SCENES = {
 <style is:global>
   .mm-photo{display:flex;flex-direction:column;gap:10px}
   .mm-photo[hidden],#mm-players[hidden]{display:none}
+  .mm-sample{margin-top:0}
+  .mm-sample .mm-card{display:block;cursor:default}
+  .mm-sample .mm-board{max-width:440px}
   .mm-printrow{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
   .mm-printrow .btn{min-height:44px}
   .mm-stage{display:flex;flex-direction:column;gap:var(--g-sm)}

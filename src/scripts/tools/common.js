@@ -92,6 +92,15 @@ export function picker(root, onChange) {
   return { get: () => (btns.find((b) => b.getAttribute("aria-pressed") === "true") || btns[0]).dataset.v, set };
 }
 
+/* 「この見本で試す」：ボタンの data-src の見本を、選んだファイルと同じ形（File）にして渡す。見本はこのサイトに置いてある */
+export async function sampleFile(btn, type) {
+  const r = await fetch(btn.dataset.src);
+  if (!r.ok) throw new Error("sample");
+  const blob = await r.blob();
+  return new File([blob], btn.dataset.name, { type: type || blob.type });
+}
+export const SAMPLE_ERR = "見本を読み込めませんでした。インターネットの接続を確かめて、もう一度お試しください。";
+
 export const canvasToBlob = (canvas, type = "image/png", quality) =>
   new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("画像を作れませんでした"))), type, quality));
 
