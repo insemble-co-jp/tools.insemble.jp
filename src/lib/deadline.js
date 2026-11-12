@@ -10,6 +10,7 @@ export const STORE_KEY = "atonannichi.v1";
 export const VERSION = 1;
 const MAX_ITEMS = 300;
 const MAX_TEXT = 120;
+export const MAX_WHO = 30;
 
 export const pad2 = (n) => String(n).padStart(2, "0");
 /** その日の 0:00 */
@@ -52,6 +53,18 @@ export function elapsed(diff) {
   if (h >= 1) return `${h}時間${m ? m + "分" : ""}`;
   return `${Math.max(m, 1)}分`;
 }
+
+/* ---------- 誰の締切か（who：空なら自分） ----------
+   絞り込みの値（ui.who）は null＝すべて／""＝自分／それ以外＝その人 */
+export const matchWho = (d, who) => who == null || (d.who || "") === who;
+/** 締切に出てくる人（多い順。同じ数なら先に出てきた順） */
+export function people(deadlines) {
+  const n = new Map();
+  for (const d of deadlines) if (d.who) n.set(d.who, (n.get(d.who) || 0) + 1);
+  return [...n.keys()].sort((a, b) => n.get(b) - n.get(a));
+}
+/** お知らせ・完了リストで使う名前（人の締切は「田中：サイト公開」） */
+export const label = (d) => (d.who ? `${d.who}：${d.title}` : d.title);
 
 /* ---------- 状態：通常 → 注意（72時間以内）→ 緊急（24時間以内）→ 超過 ---------- */
 export const RANK = { over: 0, urgent: 1, caution: 2, normal: 3 };
@@ -98,7 +111,11 @@ export function weekly(deadlines, now) {
 }
 
 /** お知らせの1行：いちばん近い（いちばん緊急な）締切を代表にする */
-export function notice(cards) {
+/** 絞り込んで、まだ終わっていない締切が0件のときの文言（who：null＝すべて／""＝自分／名前）。ほかの人の締切まで無いように見せない */
+export const noneFor = (who) => (who == null ? "" : `${who ? `「${who}」` : "自分"}のまだ終わっていない締切はありません`);
+
+export function notice(cards, who = null) {
+  if (!cards.length && who != null) return { st: "normal", key: `none:${who}`, msg: noneFor(who), sub: "「すべて」を押すと、ほかの人の締切も表示します", dismissable: false };
   if (!cards.length) return { st: "normal", key: "none", msg: "締切はまだありません", sub: "「締切を追加」から入れると、いちばん近い締切の残り時間をここで知らせます", dismissable: false };
   const c = cards[0], t = c.title, v = c.v;
   // サンプルは落ち着いた色で。初めて開いた人に、自分の何かが期限切れになりそうな警告に見えないように
@@ -133,29 +150,35 @@ const fmtDate = (t) => ymd(t) + (isEndOfDay(t) ? "" : " " + hm(t));
 const oneLine = (s) => String(s).replace(/[\t\r\n]+/g, " ").trim();
 /** = + - @ で始まる名前は、Excel・スプレッドシートに貼ったとき数式として動かないよう ' を付ける */
 const noFormula = (s) => (/^[=+\-@]/.test(s) ? "'" + s : s);
-/** Notion・Excel・スプレッドシートに貼れる「タスク名<TAB>期限」 */
-export const toTsv = (deadlines) => deadlines.map((d) => `${noFormula(oneLine(d.title))}\t${fmtDate(d.dueDate)}`).join("\n");
+/** Notion・Excel・スプレッドシートに貼れる「タスク名<TAB>期限」。人の締切があれば3列目に担当 */
+export function toTsv(deadlines) {
+  const withWho = deadlines.some((d) => d.who);
+  return deadlines.map((d) => `${noFormula(oneLine(d.title))}\t${fmtDate(d.dueDate)}${withWho ? "\t" + noFormula(oneLine(d.who || "")) : ""}`).join("\n");
+}
 
 /** 残り日数・状態の関数入り CSV（Excelで開くたびに更新される）。タイトルは数式として動かないようにする */
 export function toCsv(deadlines) {
   const q = (v) => '"' + String(v).replace(/"/g, '""') + '"';
   const safe = noFormula;
   const fmt = (t) => { const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${hm(t)}`; };
-  const rows = [["締切", "期限", "残り日数", "残り時間（時間）", "状態", "完了"]];
+  const withWho = deadlines.some((d) => d.who); // 担当は右端に足す（関数の参照する列がずれないように）
+  const rows = [["締切", "期限", "残り日数", "残り時間（時間）", "状態", "完了", ...(withWho ? ["担当"] : [])]];
   [...deadlines].sort((a, b) => a.dueDate - b.dueDate).forEach((d, i) => {
     const r = i + 2;
     rows.push([safe(oneLine(d.title)), fmt(d.dueDate), `=IF(F${r}="済","",INT(B${r})-TODAY())`, `=IF(F${r}="済","",ROUNDDOWN((B${r}-NOW())*24,0))`,
-      `=IF(F${r}="済","完了",IF(B${r}<NOW(),"期限オーバー",IF(B${r}-NOW()<=1,"緊急",IF(B${r}-NOW()<=3,"注意","通常"))))`, d.done ? "済" : ""]);
+      `=IF(F${r}="済","完了",IF(B${r}<NOW(),"期限オーバー",IF(B${r}-NOW()<=1,"緊急",IF(B${r}-NOW()<=3,"注意","通常"))))`, d.done ? "済" : "", ...(withWho ? [safe(oneLine(d.who || ""))] : [])]);
   });
   return "﻿" + rows.map((r) => r.map(q).join(",")).join("\r\n");
 }
 
 /* ---------- まとめて貼り付け（Notion・Excel・スプレッドシート・メモから） ----------
-   1行に1件。「タスク名」と「期限」をタブ・カンマ・2つ以上の空白で区切る（順番はどちらでもよい）
-   期限は 2026-10-10 / 2026/10/10 / 2026年10月10日 / 10/10 / 10月10日。後ろに 18:00 を付けると時刻も */
+   1行に1件。「タスク名」と「期限」をタブ・カンマ・2つ以上の空白で区切る（順番はどちらでもよい）。もう1つあれば担当（誰の締切か）
+   期限は 2026-10-10 / 2026/10/10 / 2026年10月10日 / 10/10 / 10月10日。後ろに 18:00 を付けると時刻も
+   Notion の期間（2026年11月20日 → 2026年11月22日）は、終わりの日を期限にする
+   1行目が見出し（タスク名・担当者・期限…）なら、列の名前で読み分け、ステータスなどほかの列は読み飛ばす */
 const toHalf = (s) => s.replace(/[０-９：／－．，]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/　/g, " ");
 export function parseDate(text, now) {
-  const s = toHalf(String(text)).trim().replace(/\s*[（(][日月火水木金土][)）]\s*/g, " ").trim();
+  const s = toHalf(String(text).split(/\s*(?:→|->|～|〜)\s*/).pop()).trim().replace(/\s*[（(][日月火水木金土][)）]\s*/g, " ").trim();
   let m = /^(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*日?(?:\s+|T)?(?:(\d{1,2})\s*[:時]\s*(\d{2})?\s*分?)?$/.exec(s);
   let y, mo, d, h, mi;
   if (m) [, y, mo, d, h, mi] = m;
@@ -189,22 +212,55 @@ function splitLine(line) {
   const m = /^(.*\S)\s+(\S+(?:\s+\d{1,2}:\d{2})?)$/.exec(line) || [];
   return m.length ? [m[1], m[2]] : [line];
 }
+/* 見出しの言葉 → 列の役割（担当 → 期限 → 名前 の順に見る。「締切」だけなら名前、「締切日」なら期限） */
+const H_WHO = /担当|誰|メンバー|assign|owner|person/i;
+const H_DUE = /期限|期日|日付|日時|締切日|〆切日|due|date|deadline/i;
+const H_TITLE = /タスク|件名|タイトル|名前|名称|締切|〆切|案件|やること|^(?:name|title|task)$/i;
+function headerMap(cells, now) {
+  if (cells.length < 2 || cells.some((c) => c.length > 20 || parseDate(c, now))) return null;
+  const m = { who: -1, due: -1, title: -1 };
+  cells.forEach((c, j) => {
+    if (m.who < 0 && H_WHO.test(c)) m.who = j;
+    else if (m.due < 0 && H_DUE.test(c)) m.due = j;
+    else if (m.title < 0 && H_TITLE.test(c)) m.title = j;
+  });
+  return m.who >= 0 || m.due >= 0 || m.title >= 0 ? m : null;
+}
+const cut = (s, n) => s.slice(0, n).trim();
 export function parseBulk(text, now) {
   const ok = [], bad = [];
+  let head = null;
   String(text || "").split(/\r?\n/).slice(0, MAX_ITEMS).forEach((raw, i) => {
-    const line = raw.trim().slice(0, 400); // 極端に長い行で読み取りが重くならないように
-    if (!line) return;
-    const cells = splitLine(line).map((c) => c.trim().replace(/^"|"$/g, "")).filter(Boolean);
+    // 極端に長い行で読み取りが重くならないように切る。タブは残す（先頭の空のセルを消すと、見出しと列がずれる）
+    const line = raw.replace(/^ +|[ \r]+$/g, "").slice(0, 400);
+    if (!line.trim()) return;
+    const all = splitLine(line).map((c) => c.trim().replace(/^"|"$/g, "").trim());
+    if (!ok.length && !bad.length && !head && (head = headerMap(all, now))) return; // 見出しの行
+    if (head) {
+      // 見出しがあるときは列の位置で読む（空のセルも数えたまま）
+      const get = (j) => (j >= 0 ? all[j] || "" : "");
+      let due = head.due >= 0 ? parseDate(get(head.due), now) : null;
+      let at = head.due;
+      if (!due) for (let j = all.length - 1; j >= 0; j--) { if (j === head.who || j === head.title) continue; const t = parseDate(all[j], now); if (t) { due = t; at = j; break; } }
+      const title = cut(head.title >= 0 ? get(head.title) : all.find((c, j) => c && j !== at && j !== head.who) || "", MAX_TEXT);
+      if (due && title) ok.push({ title, dueDate: due, who: cut(get(head.who), MAX_WHO) });
+      else bad.push({ line: i + 1, text: line.slice(0, 40) });
+      return;
+    }
+    const cells = all.filter(Boolean);
     let at = -1, due = null;
     for (let j = cells.length - 1; j >= 0; j--) { const t = parseDate(cells[j], now); if (t) { at = j; due = t; break; } }
     if (at < 0 && cells.length === 1) {
       // 「サイト公開 10/10」のように、先頭が日付のことも
       const m = /^(\S+)\s+(.+)$/.exec(cells[0]);
       const t = m && parseDate(m[1], now);
-      if (t) return ok.push({ title: m[2].slice(0, MAX_TEXT), dueDate: t });
+      if (t) return ok.push({ title: cut(m[2], MAX_TEXT), dueDate: t, who: "" });
     }
-    const title = cells.filter((_, j) => j !== at).join(" ").slice(0, MAX_TEXT);
-    if (due && title) ok.push({ title, dueDate: due });
+    // 日付以外の1つ目が名前、2つ目が担当（短いときだけ。長ければ名前の続きとみなす）
+    const rest = cells.filter((_, j) => j !== at);
+    const who = rest.length === 2 && rest[1].length <= MAX_WHO ? rest.pop() : "";
+    const title = cut(rest.join(" "), MAX_TEXT);
+    if (due && title) ok.push({ title, dueDate: due, who });
     else if (i === 0 && cells.length > 1) return; // 1行目が「タスク名 / 期限」のような見出しなら飛ばす
     else bad.push({ line: i + 1, text: line.slice(0, 40) });
   });
@@ -242,6 +298,7 @@ export function normalize(raw, now) {
       id: str(d.id) || uid(), title, dueDate,
       createdAt: Number.isFinite(createdAt) ? Math.min(createdAt, dueDate - HOUR) : Math.min(now, dueDate - HOUR),
       done: !!d.done, doneAt: d.done && Number.isFinite(doneAt) ? doneAt : d.done ? now : 0,
+      who: str(d.who).slice(0, MAX_WHO).trim(),
       sample: !!d.sample,
     };
   }).filter(Boolean);
@@ -249,7 +306,9 @@ export function normalize(raw, now) {
   // win：アプリとして置いたときの、ミニにする前のウィンドウの大きさ
   const okSize = (v) => Number.isFinite(v) && v >= 200 && v <= 8000;
   const win = ui.win && okSize(ui.win.w) && okSize(ui.win.h) ? { w: Math.round(ui.win.w), h: Math.round(ui.win.h) } : null;
-  return { version: VERSION, tasks, deadlines, ui: { mini: !!ui.mini, todayOpen: !!ui.todayOpen, backupAsked: !!ui.backupAsked, placeAsked: !!ui.placeAsked, win } };
+  // who：一覧の絞り込み（null＝すべて／""＝自分／名前）
+  const who = typeof ui.who === "string" ? str(ui.who).slice(0, MAX_WHO).trim() : null;
+  return { version: VERSION, tasks, deadlines, ui: { mini: !!ui.mini, todayOpen: !!ui.todayOpen, backupAsked: !!ui.backupAsked, placeAsked: !!ui.placeAsked, win, who } };
 }
 
 /** 片づけ：前の日までに完了した「今日やること」と、30日より前に完了した締切を消す */
@@ -266,9 +325,9 @@ export function tidy(data, now) {
 export function samples(now) {
   const r5 = (t) => Math.round(t / (5 * MIN)) * 5 * MIN;
   const T = (text, done) => ({ id: uid(), text, completed: !!done, createdAt: now - 2 * HOUR, completedAt: done ? now - HOUR : 0, day: ymd(now), sample: true });
-  const D = (title, offs, len) => ({ id: uid(), title, dueDate: r5(now + offs), createdAt: now + offs - len, done: false, doneAt: 0, sample: true });
+  const D = (title, offs, len, who = "") => ({ id: uid(), title, dueDate: r5(now + offs), createdAt: now + offs - len, done: false, doneAt: 0, who, sample: true });
   return {
     tasks: [T("山田さんに確認メール"), T("ワイヤー修正"), T("見積書送付", true)],
-    deadlines: [D("見積書の提出", 5 * HOUR + 20 * MIN, 3 * DAY), D("サイト公開", 2 * DAY + 4 * HOUR, 14 * DAY), D("月次レポート", 9 * DAY, 30 * DAY)],
+    deadlines: [D("見積書の提出", 5 * HOUR + 20 * MIN, 3 * DAY), D("サイト公開", 2 * DAY + 4 * HOUR, 14 * DAY), D("月次レポート", 9 * DAY, 30 * DAY, "田中")],
   };
 }

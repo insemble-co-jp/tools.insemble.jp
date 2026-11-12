@@ -6,7 +6,7 @@
    =========================================================== */
 import {
   DAY, HOUR, MIN, WD, STORE_KEY, VERSION, pad2, sod, ymd, md, hm, uid, dueAt, parts, ptext,
-  view, notice, weekly, formulas, toTsv, toCsv, parseBulk, normalize, tidy, samples,
+  view, notice, isEndOfDay, weekly, formulas, toTsv, toCsv, parseBulk, normalize, tidy, samples, matchWho, people, label, noneFor, MAX_WHO,
 } from "../../lib/deadline.js";
 import { $, copyText, download, reduceMotion } from "./common.js";
 
@@ -18,12 +18,12 @@ function init() {
   const el = {
     clock: $("#an-clock"), install: $("#an-install"), miniBtn: $("#an-mini-btn"),
     nwrap: $("#an-nwrap"), notice: $("#an-notice"), nmsg: $("#an-nmsg"), nsub: $("#an-nsub"), later: $("#an-later"), live: $("#an-live"),
-    mini: $("#an-mini"), mtoday: $(".an-mtoday"), mlist: $("#an-mlist"), mempty: $("#an-mempty"), mcount: $("#an-mcount"), mnext: $("#an-mnext"),
+    mini: $("#an-mini"), mtoday: $(".an-mtoday"), mlist: $("#an-mlist"), mempty: $("#an-mempty"), mfil: $("#an-mfil"), mcount: $("#an-mcount"), mnext: $("#an-mnext"),
     full: $("#an-full"), dlN: $("#an-dl-n"), open: $("#an-open"), samples: $("#an-samples"), clearSamples: $("#an-clear-samples"),
     backup: $("#an-backup"), backupT: $("#an-backup-t"), backupNo: $("#an-backup-no"), backupYes: $("#an-backup-yes"),
     place: $("#an-place"), placeT: $("#an-place-t"), placeNo: $("#an-place-no"), placeYes: $("#an-place-yes"),
     composer: $("#an-composer"), cmodeT: $("#an-cmode-t"), mode: $("#an-mode"), one: $("#an-one"), bulk: $("#an-bulk"),
-    title: $("#an-title"), dchips: $("#an-dchips"), date: $("#an-date"), tchips: $("#an-tchips"), time: $("#an-time"),
+    title: $("#an-title"), who: $("#an-who"), wchips: $("#an-wchips"), filter: $("#an-filter"), fempty: $("#an-fempty"), dchips: $("#an-dchips"), date: $("#an-date"), tchips: $("#an-tchips"), time: $("#an-time"),
     kj: $("#an-kj"), eg: $("#an-eg"), bulkIn: $("#an-bulk-in"), bres: $("#an-bres"), preview: $("#an-preview"), prevL: $("#an-prev-l"), cancel: $("#an-cancel"), submit: $("#an-submit"),
     cards: $("#an-cards"), empty: $("#an-empty"), first: $("#an-first"),
     done: $("#an-done"), week: $("#an-week"), weekT: $("#an-week-t"), weekS: $("#an-week-s"), dtoggle: $("#an-dtoggle"), dn: $("#an-dn"), dlist: $("#an-dlist"),
@@ -153,7 +153,7 @@ function init() {
     const n = h("article", "an-card");
     n.dataset.id = c.d.id;
     n.tabIndex = -1; // 完了を押したあと、はんこを見せているあいだフォーカスを置いておく場所
-    n.innerHTML = `<div class="an-ctop2"><span class="an-pill"><span class="an-dot"></span><span data-r="pill"></span></span><span class="an-smp" data-r="smp" hidden>サンプル</span><button type="button" class="an-date an-ren" data-a="due" title="押すと期限の日時を変えられます"><span data-r="date"></span>${ICON.pen}<span class="sr-only">（期限を変える）</span></button></div>
+    n.innerHTML = `<div class="an-ctop2"><span class="an-pill"><span class="an-dot"></span><span data-r="pill"></span></span><span class="an-who" data-r="who" hidden></span><span class="an-smp" data-r="smp" hidden>サンプル</span><button type="button" class="an-date an-ren" data-a="due" title="押すと期限の日時を変えられます"><span data-r="date"></span>${ICON.pen}<span class="sr-only">（期限を変える）</span></button></div>
 <h3 class="an-ttl"><button type="button" class="an-ren" data-a="ren" title="押すと名前を変えられます"><span data-r="title"></span>${ICON.pen}<span class="sr-only">（名前を変える）</span></button></h3>
 <div class="an-left" data-r="left"></div><div class="an-bar" data-r="barw" aria-hidden="true"><i data-r="bar"></i></div>
 <div class="an-over" data-r="over" hidden><b>期限オーバー</b><span data-r="overt"></span></div>
@@ -181,6 +181,7 @@ function init() {
     n.classList.toggle("is-done", d.done);
     n.classList.toggle("is-editing", ui.edit === d.id);
     setText(q("pill"), v.pill);
+    q("who").hidden = !d.who; setText(q("who"), d.who || "");
     setText(q("date"), v.dateLabel);
     q("smp").hidden = !d.sample;
     q("left").hidden = q("barw").hidden = v.over;
@@ -250,29 +251,35 @@ function init() {
   let live = []; // まだ完了していない締切（近い順）
   let lastNoticeKey = null, lastDoneSig = "", lastWeekN = -1;
   function renderDeadlines(now = Date.now()) {
-    const sorted = [...data.deadlines].sort((a, b) => a.dueDate - b.dueDate);
+    renderFilter();
+    const who = data.ui.who;
+    const sorted = data.deadlines.filter((d) => matchWho(d, who)).sort((a, b) => a.dueDate - b.dueDate);
     const act = sorted.filter((d) => !d.done || now - d.doneAt < 1400);
     const doneArr = sorted.filter((d) => d.done && now - d.doneAt >= 1400).sort((a, b) => b.doneAt - a.doneAt);
     const cards = act.map((d, i) => ({ id: d.id, d, v: view(d, now), featured: i === 0 && !d.done }));
-    live = cards.filter((c) => !c.d.done).map((c) => ({ id: c.id, title: c.d.title, v: c.v, sample: c.d.sample }));
+    live = cards.filter((c) => !c.d.done).map((c) => ({ id: c.id, title: label(c.d), name: c.d.title, who: c.d.who, v: c.v, sample: c.d.sample }));
     sync(el.cards, cards, cardEls, makeCard, updateCard);
     if (focusAfter) { focusAfter = false; (el.cards.querySelector('[data-a="done"]:not(:disabled)') || el.open).focus(); }
     setText(el.dlN, `${live.length}件`);
-    el.empty.hidden = cards.length > 0 || ui.composer;
+    // 絞り込んで0件のときは「最初の締切を入れる」ではなく、その人の締切がないことを伝える
+    const filtered = cards.length === 0 && who != null && data.deadlines.length > 0;
+    el.empty.hidden = cards.length > 0 || ui.composer || filtered;
+    el.fempty.hidden = !filtered || ui.composer;
+    if (filtered) setText(el.fempty, noneFor(who));
     el.samples.hidden = !hasSamples();
     // 完了した締切
     el.done.hidden = !doneArr.length;
     setText(el.dn, String(doneArr.length));
     el.dtoggle.setAttribute("aria-expanded", String(ui.showDone));
     el.dlist.hidden = !ui.showDone;
-    const sig = doneArr.map((d) => d.id).join() + ui.showDone;
+    const sig = doneArr.map((d) => d.id + d.who).join() + ui.showDone;
     if (sig !== lastDoneSig) {
       lastDoneSig = sig;
       el.dlist.replaceChildren(...doneArr.map((d) => {
         const li = h("li");
         const s = h("span", "an-sumi", "済"); s.setAttribute("aria-hidden", "true");
-        const b = h("button", null, "戻す"); b.type = "button"; b.dataset.id = d.id; b.setAttribute("aria-label", `「${d.title}」を未完了に戻す`);
-        li.append(s, h("span", "an-dt", d.title), h("small", null, md(d.doneAt) + " 完了"), b);
+        const b = h("button", null, "戻す"); b.type = "button"; b.dataset.id = d.id; b.setAttribute("aria-label", `「${label(d)}」を未完了に戻す`);
+        li.append(s, h("span", "an-dt", label(d)), h("small", null, md(d.doneAt) + " 完了"), b);
         return li;
       }));
     }
@@ -292,7 +299,7 @@ function init() {
     renderNotice(); renderMini(); renderTitle();
   }
   function renderNotice() {
-    const n = notice(live);
+    const n = notice(live, data.ui.who);
     el.nwrap.hidden = ui.noticeOff === n.key;
     if (el.notice.dataset.st !== n.st) el.notice.dataset.st = n.st;
     setText(el.nmsg, n.msg); setText(el.nsub, n.sub);
@@ -308,10 +315,19 @@ function init() {
     sync(el.mlist, live, miniEls, (c) => {
       const li = h("li");
       const dot = h("span", "an-dot"); dot.style.cssText = "width:7px;height:7px;flex:none;border-radius:50%;background:var(--dot)";
-      li.append(dot, h("span", "an-mt", c.title), h("span", "an-mshort"));
+      li.append(dot, h("span", "an-mwho"), h("span", "an-mt"), h("span", "an-mshort"));
       return li;
-    }, (li, c) => { li.dataset.st = c.v.st; setText(li.children[1], c.title); setText(li.lastChild, c.v.short); });
+    }, (li, c) => {
+      li.dataset.st = c.v.st;
+      li.children[1].hidden = !c.who; setText(li.children[1], c.who || "");
+      setText(li.children[2], c.name); setText(li.lastChild, c.v.short);
+    });
     el.mempty.hidden = live.length > 0;
+    setText(el.mempty, noneFor(data.ui.who) || "締切はまだありません");
+    // 絞り込んだままミニにしても、ほかの人の締切が消えたと思わないように
+    const who = data.ui.who;
+    el.mfil.hidden = who == null;
+    if (who != null) setText(el.mfil, who ? `「${who}」の締切だけ表示中` : "自分の締切だけ表示中");
   }
   // タブ名（タスクバー）とアプリのバッジ：自分の締切があるとき・アプリで開いたときだけ（サンプルを検索エンジンのタイトルにしない）
   // タブ名には残り時間だけを出し、締切の名前は入れない（タイトルは計測タグや画面の録画に渡ることがあるため）
@@ -336,6 +352,27 @@ function init() {
     persist(); renderAll();
   });
   el.clearSamples.addEventListener("click", () => { const prev = dropSamples(); if (prev) { persist(); renderAll(); toast("サンプルを片づけました", prev); } });
+
+  /* ---------- 誰の締切を見るか（すべて／自分／人ごと） ----------
+     絞り込むと、カード・お知らせ・ミニ・タブ名がその人の締切だけで数える。人の締切が1件もなければ出さない */
+  function renderFilter() {
+    const ppl = people(data.deadlines);
+    if (data.ui.who && !ppl.includes(data.ui.who)) data.ui.who = null; // その人の締切がなくなったら「すべて」に戻す
+    el.filter.hidden = !ppl.length;
+    if (!ppl.length) { data.ui.who = null; return; }
+    const opts = [["すべて", null], ["自分", ""], ...ppl.map((p) => [p, p])];
+    const sig = ppl.join("\n");
+    if (el.filter.dataset.sig !== sig) { // 人が増えたり減ったりしたときだけ作り直す（押したボタンからフォーカスが外れないように）
+      el.filter.dataset.sig = sig;
+      el.filter.replaceChildren(...opts.map(([l, v]) => { const b = chip(l, v ?? "", false); if (v === null) b.dataset.all = "1"; return b; }));
+    }
+    for (const b of el.filter.children) b.setAttribute("aria-pressed", String(b.dataset.all ? data.ui.who == null : b.dataset.v === data.ui.who));
+  }
+  el.filter.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    data.ui.who = b.dataset.all ? null : b.dataset.v;
+    persist(); renderDeadlines();
+  });
 
   /* ---------- 締切を追加 ---------- */
   const DCHIPS = () => {
@@ -368,9 +405,18 @@ function init() {
     if (!el.tchips.children.length) el.tchips.replaceChildren(...TCHIPS.map((v) => chip(v, v, false, true)));
     for (const c of el.dchips.children) c.setAttribute("aria-pressed", String(c.dataset.v === ui.dDate));
     for (const c of el.tchips.children) c.setAttribute("aria-pressed", String(c.dataset.v === ui.dTime));
+    renderWho();
     if (el.date.value !== ui.dDate) el.date.value = ui.dDate;
     if (el.time.value !== ui.dTime) el.time.value = ui.dTime;
     renderPreview();
+  }
+  // 「誰の締切」：入れたことのある名前をボタンで出す（空欄なら自分）
+  function renderWho() {
+    const ppl = people(data.deadlines.filter((d) => !d.sample)).slice(0, 8);
+    const sig = ppl.join("\n");
+    if (el.wchips.dataset.sig !== sig) { el.wchips.dataset.sig = sig; el.wchips.replaceChildren(...(ppl.length ? [chip("自分", "", false), ...ppl.map((p) => chip(p, p, false))] : [])); }
+    const v = el.who.value.trim();
+    for (const c of el.wchips.children) c.setAttribute("aria-pressed", String(c.dataset.v === v));
   }
   function renderPreview(now = Date.now()) {
     if (!ui.composer) return;
@@ -378,7 +424,17 @@ function init() {
     if (ui.mode === "bulk") {
       const r = parseBulk(el.bulkIn.value, now);
       el.bres.replaceChildren();
-      if (r.ok.length) el.bres.append(h("b", null, `${r.ok.length}件を追加できます。`));
+      if (r.ok.length) {
+        el.bres.append(h("b", null, `${r.ok.length}件を追加できます。`));
+        // どう読み取ったか（名前・期限・担当）を先頭の3件だけ見せる。担当の列がずれていたら、ここで気づける
+        const ul = h("ul", "an-bprev");
+        ul.append(...r.ok.slice(0, 3).map((x) => {
+          const li = h("li"); li.append(h("span", "an-bpt", x.title), h("span", null, md(x.dueDate) + (isEndOfDay(x.dueDate) ? "" : " " + hm(x.dueDate))));
+          if (x.who) li.append(h("span", "an-who", x.who));
+          return li;
+        }));
+        el.bres.append(ul);
+      }
       if (r.bad.length) el.bres.append(h("span", "is-bad", ` ${r.bad.slice(0, 3).map((b) => b.line + "行目").join("・")}${r.bad.length > 3 ? "ほか" : ""}は読み取れないため、追加されません。タスク名と期限（例：10月10日）を1行に並べてください。`));
       text = r.ok.length ? `${r.ok.length}件` : "貼り付けてください"; cls = r.ok.length ? "" : "is-mute"; ok = r.ok.length > 0;
     } else {
@@ -400,6 +456,7 @@ function init() {
     ui.composer = true; ui.mode = "one"; ui.edit = d ? d.id : null;
     ui.dDate = d ? ymd(d.dueDate) : ymd(sod(Date.now()) + DAY + 2 * HOUR); ui.dTime = d ? hm(d.dueDate) : "23:59";
     el.title.value = d ? d.title : ""; el.title.removeAttribute("aria-invalid"); el.bulkIn.value = "";
+    el.who.value = d ? d.who : data.ui.who || ""; // 新しく足すときは、いま見ている人の締切として
     renderComposer(); renderDeadlines();
     el.title.focus({ preventScroll: true });
     el.composer.scrollIntoView?.({ block: "nearest", behavior: motion ? "smooth" : "auto" });
@@ -416,9 +473,9 @@ function init() {
     card.scrollIntoView?.({ block: "nearest", behavior: motion ? "smooth" : "auto" });
     card.querySelector('[data-a="due"]').focus({ preventScroll: true });
   }
-  function saveEdit(title, dueDate) {
+  function saveEdit(title, dueDate, who) {
     const id = ui.edit;
-    data.deadlines = data.deadlines.map((d) => (d.id === id ? { ...d, title, dueDate, createdAt: Math.min(d.createdAt, dueDate - HOUR) } : d));
+    data.deadlines = data.deadlines.map((d) => (d.id === id ? { ...d, title, dueDate, who, createdAt: Math.min(d.createdAt, dueDate - HOUR) } : d));
     ui.composer = false; ui.edit = null;
     persist(); renderComposer(); renderAll();
     const card = cardEls.get(id); if (card) replay(card, "is-settle");
@@ -427,7 +484,9 @@ function init() {
   function addDeadlines(list) {
     const now = Date.now();
     const prev = dropSamples();
-    const made = list.map((x) => ({ id: uid(), title: x.title, dueDate: x.dueDate, createdAt: Math.min(now, x.dueDate - HOUR), done: false, doneAt: 0, sample: false }));
+    const made = list.map((x) => ({ id: uid(), title: x.title, dueDate: x.dueDate, createdAt: Math.min(now, x.dueDate - HOUR), done: false, doneAt: 0, who: x.who || "", sample: false }));
+    // 見ている人と違う締切を足したら、足したものが見えるよう「すべて」に戻す
+    if (data.ui.who != null && made.some((m) => m.who !== data.ui.who)) data.ui.who = null;
     data.deadlines = [...data.deadlines, ...made];
     ui.fresh = made.length === 1 ? made[0].id : null;
     ui.composer = false;
@@ -446,10 +505,11 @@ function init() {
     }
     const title = el.title.value.trim().slice(0, 120);
     const due = dueAt(ui.dDate, ui.dTime);
+    const who = el.who.value.trim().slice(0, MAX_WHO);
     if (!title) { el.title.setAttribute("aria-invalid", "true"); replay(el.title, "is-nudge"); el.title.focus(); return; }
     if (!due) { el.date.focus(); return; }
-    if (ui.edit) return saveEdit(title, due);
-    addDeadlines([{ title, dueDate: due }]);
+    if (ui.edit) return saveEdit(title, due, who);
+    addDeadlines([{ title, dueDate: due, who }]);
   }
   el.open.addEventListener("click", () => openComposer());
   el.first.addEventListener("click", () => openComposer());
@@ -458,9 +518,11 @@ function init() {
   el.title.addEventListener("input", () => { el.title.removeAttribute("aria-invalid"); renderPreview(); });
   el.composer.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { e.preventDefault(); closeComposer(); }
-    if (e.key === "Enter" && !e.isComposing && e.target === el.title) { e.preventDefault(); submit(); }
+    if (e.key === "Enter" && !e.isComposing && (e.target === el.title || e.target === el.who)) { e.preventDefault(); submit(); }
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && e.target === el.bulkIn) { e.preventDefault(); submit(); }
   });
+  el.wchips.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { el.who.value = b.dataset.v; renderWho(); } });
+  el.who.addEventListener("input", renderWho);
   el.dchips.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { ui.dDate = b.dataset.v; renderComposer(); } });
   el.tchips.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { ui.dTime = b.dataset.v; renderComposer(); } });
   el.date.addEventListener("change", () => { ui.dDate = el.date.value; renderComposer(); });
@@ -471,7 +533,7 @@ function init() {
     ui.mode = mode;
     if (ui.mode === "bulk") {
       const y = new Date().getFullYear(), m = new Date().getMonth() + 1, d2 = (n) => `${y}-${pad2(m)}-${pad2(n)}`;
-      el.eg.textContent = `サイト公開\t${d2(28)}\n原稿確認\t${d2(20)} 18:00\n見積提出, 10月31日`;
+      el.eg.textContent = `サイト公開\t${d2(28)}\t田中\n原稿確認\t${d2(20)} 18:00\n見積提出, 10月31日`;
     }
     renderComposer();
     (ui.mode === "bulk" ? el.bulkIn : el.title).focus();
