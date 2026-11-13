@@ -98,13 +98,16 @@ const HUB = (function () {
     { q: "自社用にカスタマイズしたツールはつくれますか？", a: "はい。運営会社のinsembleが、Web制作や業務に合わせた専用ツールの開発をお受けしています。ページ下の「制作のご相談」からお問い合わせください。" },
   ];
 
+  /* トップ（/）の最終更新日。一覧・カテゴリ・学ぶ・FAQ など、トップの中身を変えたら更新する（サイトマップの lastmod に使う） */
+  const UPDATED = "2026-11-13";
+
   /* 公開後、更新が出てきたら true に戻す（ハブの更新情報・ツールページの更新履歴） */
   const SHOW_UPDATES = false;
 
   /* 名前だけが並ぶところ（フッターなど）で使う表示名。kind があれば括弧で添える */
   const label = (t) => (t.kind ? `${t.name}（${t.kind}）` : t.name);
 
-  return { CATS, TOOLS, LEARN, TRUST, CHANGELOG, FAQ, SHOW_UPDATES, label };
+  return { CATS, TOOLS, LEARN, TRUST, CHANGELOG, FAQ, SHOW_UPDATES, UPDATED, label };
 })();
 
 export default HUB;

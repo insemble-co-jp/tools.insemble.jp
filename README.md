@@ -51,6 +51,7 @@ npm run preview
    - `https://tools.insemble.jp/ogp/#url=https://www.insemble.co.jp` を開くと、自動でチェックされる
    - `/pdf-extract/` でPDFを開いて「テキストを抽出」できる（開けないときは、`.mjs` と `.wasm` の種類の設定＝ `.htaccess` の `AddType` を確認）
    - `/sitemap.xml`（中身は `/sitemap-index.xml` と同じ）が出ている。Search Console にはどちらかを登録する
+   - サイトマップの `lastmod` は、各ページの最終更新日から自動で入る（ツールページの `updated`、OGPチェッカーの `ogp.js` の `UPDATED`、規約の `REVISED`、トップの `hub.js` の `UPDATED`。集め方は `scripts/sitemap-lastmod.mjs`）。中身を大きく変えたら、それぞれの日付を直して公開し、Search Console からサイトマップを送り直す
 
 ### 画像（入っています）
 - 共有用の画像（OGP画像・1200×630）
