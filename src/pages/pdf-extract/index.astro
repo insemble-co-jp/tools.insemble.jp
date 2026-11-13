@@ -7,6 +7,8 @@ import { SAMPLES } from "../../data/samples.js";
 
 /* 見本（npm run samples で作る）。1ページ目の文字は、はじめの数行だけ見せる */
 const SP = SAMPLES.pdf;
+/* 見本のチラシから取り出した画像の説明（samples.js は npm run samples で作り直すので、alt はページ側に持つ） */
+const SP_ALT = ["棚に並んだ色とりどりのうつわのイラスト", "会場までの地図のイラスト"];
 const SP_TEXT = SP.text[0].split("\n").slice(0, 6).join("\n");
 
 const FAQ = [
@@ -72,8 +74,20 @@ const SCENES = {
     ["書き出せる形", "文字は .txt（UTF-8）、画像は .png か .jpg、ページ画像は .png で保存できます。まとめて保存するときは .zip になります。"],
   ]}
   relatedSub="PDFの日程表から文字を取り出したら、スケジュール→Excelメーカーで予定表にできます。サイトを公開したら、SNSでの見え方はOGPチェッカーで確かめられます。"
-  corp="たとえば「社内の申請書PDFから決まった項目だけを抜き出してExcelにする」ような、業務に合わせた専用ツールもつくれます。"
-  updated="2026-10-05"
+  cta={{
+    "h": "会社案内のPDFから、伝わるWebサイトに整えたい方へ",
+    "p": [
+      "パンフレットや会社案内のPDFは、文字や写真を取り出しても、そのままではWebで読みやすい形になりません。見出しの立て方や写真の大きさ、スマホでの読みやすさまで考えて組み直す必要があります。",
+      "今ある資料をもとにWebサイトを作りたい、作り直したいと考えている方は、手元のPDFを添えてご相談ください。"
+    ],
+    "btns": [
+      [
+        "PDF資料をもとにしたWeb制作を相談する",
+        "https://www.insemble.co.jp/contact"
+      ]
+    ]
+  }}
+  updated="2026-11-13"
 >
   <div class="tp-panel pdfx" id="pdfx">
     <!-- 1. ファイルを選ぶ -->
@@ -110,7 +124,7 @@ const SCENES = {
           <div class="pdfx-sc">
             <p class="pdfx-sc-h"><Icon name="image" size={16} />画像<b>{SP.images.length}</b>枚</p>
             <div class="pdfx-sc-row">
-              {SP.images.map((im, i) => <div class="pdfx-thumb"><img src={im.src} width={im.w} height={im.h} alt={`見本のチラシから取り出した画像${i + 1}`} loading="lazy" decoding="async" /></div>)}
+              {SP.images.map((im, i) => <div class="pdfx-thumb"><img src={im.src} width={im.w} height={im.h} alt={`見本のチラシから取り出した${SP_ALT[i] ?? "画像" + (i + 1)}`} loading="lazy" decoding="async" /></div>)}
             </div>
           </div>
           <div class="pdfx-sc">
@@ -158,11 +172,10 @@ const SCENES = {
       </div>
     </div>
   </div>
-</ToolPage>
-
 <script>
   import "../../scripts/tools/pdf.js";
 </script>
+</ToolPage>
 
 <style is:global>
   .pdfx{padding:var(--g-md)}

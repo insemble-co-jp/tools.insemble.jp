@@ -1,0 +1,32 @@
+/* OGPチェッカー（/ogp/）だけの見た目。ogp.css は端末内ツールページと共有しているので、ここで足す・上書きする。
+   ogp.css と同じく @layer の外。色・余白はトークンで書く */
+
+/* ---------- 表示トラブルの切り分け（2本の解説。太線で区切る・箱なし） ---------- */
+.ts-arts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:var(--g-md) var(--g-lg)}
+.ts-a{border-top:3px solid var(--ink);padding-top:var(--g-sm)}
+.ts-a h3{font-family:var(--font-display);font-weight:800;font-size:18px;line-height:1.5;color:var(--ink);margin-bottom:var(--g-xs);text-wrap:pretty}
+.ts-a p{font-size:16px;line-height:1.95;color:var(--ink-2);text-wrap:pretty}
+.ts-a p+p{margin-top:.8em}
+
+/* ---------- テーマ別の相談（読みものの途中に置く paper の帯） ---------- */
+.read-zone .corp{margin-top:0;border-bottom:1px solid var(--line)}
+.corp-t{word-break:auto-phrase;text-wrap:pretty}
+.corp-d{font-size:16px}
+.corp-a .btn{white-space:normal;text-align:center;justify-content:center;min-height:48px;line-height:1.4}
+
+/* ---------- 運営（末尾の1行。相談の箱があるので大きな誘いは出さない） ---------- */
+.op{padding-bottom:var(--g-xl)}
+.op-in{display:flex;align-items:baseline;gap:var(--g-xs);flex-wrap:wrap;border-top:1px solid var(--line);padding-top:var(--g-sm);font-size:14px;color:var(--ink-2);line-height:1.75}
+.op-k{font-size:11.5px;font-weight:800;color:var(--muted);letter-spacing:.08em}
+.op-name{font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink)}
+.op-d{flex:1;min-width:min(100%,240px)}
+.op-a{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-weight:700;color:var(--primary-ink);white-space:nowrap;text-underline-offset:3px}
+.op-a svg{transition:transform .18s}
+.op-a:hover svg{transform:translateX(3px)}
+
+/* ---------- 結果をシェア：絵文字をやめ、線のアイコンを白い丸に置く ---------- */
+.share-emoji{width:48px;height:48px;border-radius:99px;display:grid;place-items:center;flex-shrink:0;font-size:0;background:var(--surface);color:var(--primary);border:1px solid var(--primary-soft-2);filter:none}
+
+@media (prefers-reduced-motion: reduce){
+  .op-a svg{transition:none}
+}

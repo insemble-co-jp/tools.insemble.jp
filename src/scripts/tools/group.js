@@ -3,7 +3,7 @@
    名前 → 数を決める → 分ける → シャッフル／コピー／画像／CSV
    振り分けは src/lib/arrange.js（条件の追加もそちら）
    =========================================================== */
-import { $, esc, svg, download, copyText, showMsgs, picker, canvasToBlob, fitText, FONT, INK, HUES, stamp, reveal, submitOnCtrlEnter } from "./common.js";
+import { $, esc, svg, download, copyText, showMsgs, picker, sampleNames, SAMPLE_NOTE, canvasToBlob, fitText, FONT, INK, HUES, stamp, reveal, submitOnCtrlEnter } from "./common.js";
 import { peopleForm, readRules, hasTags } from "./people.js";
 import { arrange, randInt } from "../../lib/arrange.js";
 
@@ -19,6 +19,8 @@ const spread = $("#grp-spread");
 const apart = $("#grp-apart");
 const together = $("#grp-together");
 const leadNote = $("#grp-lead-note");
+/* 見本の名前（★＝リーダー、「,」のあと＝部署）。開いたときからグループの見本を出す。peopleForm より先に入れる */
+const sample = sampleNames(names, ["★田中,営業", "佐藤,営業", "鈴木,開発", "高橋,開発", "伊藤,総務", "渡辺,営業", "★山本,開発", "中村,総務", "小林,営業", "加藤,開発", "★吉田,総務", "山田,営業"]);
 const pf = peopleForm({ names, count: $("#grp-names-count"), groups: $("#grp-groups"), per: $("#grp-per"), summary: $("#grp-sum"), unit: "グループ", even: () => even.checked, leadMark: true });
 const label = picker($("#grp-label"), () => { if (result) draw(); });
 const emptyHtml = out.innerHTML;
@@ -63,7 +65,7 @@ function decide(scroll = true) {
   const ordered = groups.map((g) => [...g.filter((i) => people[i].lead), ...g.filter((i) => !people[i].lead)]);
   // ★のいないグループのための、ランダムのリーダー（「リーダーを決める」がオンのときだけ表示）
   const randomLead = ordered.map((g) => (g.length && !g.some((i) => people[i].lead) ? g[randInt(g.length)] : -1));
-  result = { people, groups: ordered, randomLead };
+  result = { people, groups: ordered, randomLead, sample: sample.on };
   draw();
   if (scroll && window.innerWidth <= 860) reveal(out);
 }
@@ -88,6 +90,7 @@ function draw() {
   out.innerHTML = `
     <div class="out-head">
       <div>
+        ${result.sample ? SAMPLE_NOTE("グループに分ける") : ""}
         <p class="out-t"><b>${groups.length}</b>グループ・${people.length}人</p>
         <p class="out-d">${[...new Set(groups.map((g) => g.length))].sort((a, b) => b - a).map((n) => `${n}人`).join("・")}のグループに分けました。${lead ? "リーダーには印を付けています。" : ""}</p>
       </div>
@@ -200,6 +203,7 @@ out.addEventListener("click", async (e) => {
     catch (err) { showMsgs(msgs, [["err", "結果を画像にできませんでした。グループや人数が多いと、ブラウザで大きな画像を作りきれないことがあります。もう一度「画像で保存」を押すか、「結果をコピー」や「CSVで保存」で持ち出してください。"]]); }
   }
   if (d === "reset") {
+    sample.off();
     result = null;
     out.innerHTML = emptyHtml;
     pf.reset();
@@ -210,3 +214,6 @@ out.addEventListener("click", async (e) => {
     names.focus();
   }
 });
+
+/* 開いたときに、見本の名前でグループ分けの結果を出しておく */
+if (sample.on) { onNames(); decide(false); }

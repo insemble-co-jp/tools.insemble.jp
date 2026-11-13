@@ -182,7 +182,7 @@ code,pre{font-family:var(--font-mono)}
 .try-lbl{font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap}
 
 /* ---------- 使い方（罫線で区切る・箱なし） ---------- */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);margin-top:4px;border-top:1px solid var(--line)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);margin-top:4px;border-top:1px solid var(--line);list-style:none}
 .step{padding:22px 26px 22px 0;border-top:3px solid var(--ink);margin-top:-1px;position:relative}
 .step:not(:first-child){padding-left:26px;border-left:1px solid var(--line)}
 .step-n{font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--primary);letter-spacing:.1em;margin-bottom:9px}
