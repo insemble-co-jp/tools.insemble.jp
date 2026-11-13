@@ -163,7 +163,7 @@
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* ===========================================================
-   ツールページの枠（ToolPage.astro）。デザイン見本 src/design_handoff_tools/assets/tools-base.css から移植
+   ツールページの枠（ToolPage.astro）。デザイン見本（tools-base.css。2026-11 の全ページ再構築のハンドオフ）から移植
    上＝パンくず・安心表示・見出し（中央）／下＝読みもの（使い方 → こんなときに → 実務のヒント → 相談 → FAQ → 関連 → 概要 → 運営）
    =========================================================== */
 /* 安心表示（パンくずの右）。最終更新はスマホでは隠す（概要の下と構造化データに残る） */
