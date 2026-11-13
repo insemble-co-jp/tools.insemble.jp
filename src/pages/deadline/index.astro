@@ -3,7 +3,6 @@
    デザインの元データは Claude Design の「あと何日？」。動きは src/scripts/tools/deadline.js、計算は src/lib/deadline.js
    アプリとして置ける（PWA）：public/deadline/manifest.webmanifest・sw.js。アプリで開いたときは、サイトの枠を隠してツールだけを出す */
 import ToolPage from "../../layouts/ToolPage.astro";
-import SectionHead from "../../components/SectionHead.astro";
 import Icon from "../../components/Icon.astro";
 
 const FAQ = [
@@ -14,7 +13,7 @@ const FAQ = [
   { q: "Notion・Excelとのあいだで、締切をまとめて出し入れできますか？", a: "できます。入れるときは、「締切を追加」を押し、入力欄の上にある「Notion・Excelからまとめて貼り付け」に切り替えて、1行に1件ずつ「タスク名」と「期限」を貼り付けてください。3列目に担当（誰の締切か）があれば、それも読み取ります。Notionの表は、見出しの行（「名前」「担当者」「期限」など）ごとコピーして貼ると、列の名前から担当と期限を見分け、ステータスなどほかの列は読み飛ばします。期限は「2026-10-10」「2026/10/10」「10月10日」などの書き方で入れられ、後ろに「18:00」のように時刻も付けられます。期間（11月20日 → 11月22日）は、終わりの日を期限にします。持ち出すときは、ツールの下の「コピーしてNotion・Excelに貼る」で「タスク名」「期限」（人の締切があれば「担当」も）の列をコピーできます。残り日数が自動で変わるファイルにしたいときは、「Excelに書き出す（バックアップにも）」を押してください。このファイルは「まとめて貼り付け」の「CSVファイルを選ぶ」から読み戻せて、完了の印も戻ります。すでに入っている締切は、二重には入りません。", cta: { label: "まとめて貼り付ける", do: "bulk" } },
   { q: "チームメンバーの締切も、一緒に数えられますか？", a: "数えられます。締切を入れるときに「誰の締切」に名前を入れると、カードに名前が付きます。空欄のままなら自分の締切です。人の締切があると、一覧の上に「すべて」「自分」と名前ごとのボタンが出て、押した人の締切だけに絞り込めます。絞り込むと、上の1行のお知らせ・ミニ表示・タブ名も、その人の締切だけで数えます。入れた名前も、このブラウザの中にだけ保存し、メンバーには送られません。" },
   { q: "パソコンに常に表示しておけますか？", a: "できます。Chrome や Edge では、ツールのいちばん上にある「アプリとして置く」を押すと、ブラウザとは別のウィンドウで開くアプリとして置けます。画面の隅に置いて「ミニ」を押すと、ウィンドウが締切を1行ずつ並べた小さな表示に縮み、もう一度押すと元の大きさに戻ります。デスクトップやタスクバーのアイコンを右クリックすると、「締切を追加」「今日やることを書く」をすぐに開けます。Mac の Safari では、macOS 14 以降なら、メニューバーの「ファイル」から「Dockに追加」を選ぶと置けます。iPhone・Android では、共有メニューやブラウザのメニューにある「ホーム画面に追加」から置けます。置き方が分からないときは、「アプリとして置く」を押すと、お使いのブラウザでの手順を表示します。Firefox のパソコン版はアプリとして置けないため、Chrome・Edge・Safari で開いてください。置いたあとは、ネットにつながっていなくても使えます。", cta: { label: "アプリとして置く", do: "place" } },
-  { q: "締切の時間になったら、通知は来ますか？", a: "通知や音は出しません。作業の邪魔をしないよう、画面の中で静かに知らせます。ツールの上の1行のお知らせと、締切のカードの色が、締切が近づくにつれて変わります。ブラウザのタブ名にも「あと3時間 | あと何日？」のように、いちばん近い締切までの残り時間が出るので、ほかのタブで作業していても目に入ります。期日の当日にメールで知らせてほしいときは、同じインセンブルがつくっている「きじかん」をお使いください。使い分けは、この「よくある質問」のすぐ上にある、きじかんの紹介をご覧ください。" },
+  { q: "締切の時間になったら、通知は来ますか？", a: "通知や音は出しません。作業の邪魔をしないよう、画面の中で静かに知らせます。ツールの上の1行のお知らせと、締切のカードの色が、締切が近づくにつれて変わります。ブラウザのタブ名にも「あと3時間 | あと何日？」のように、いちばん近い締切までの残り時間が出るので、ほかのタブで作業していても目に入ります。1か月以上先の契約更新など、当日にメールで知らせてほしい期日には、同じインセンブルがつくっている「きじかん」が向いています。" },
 ];
 
 const SCENES = {
@@ -34,7 +33,7 @@ const SCENES = {
       items: [
         ["請求書の送付や月末の締め作業を、カレンダーとは別にさっと確認したい", "ブラウザのタブ名にも、いちばん近い締切までの残り時間が「あと2日14時間」のように出るので、別の作業をしていても目に入ります。"],
         ["今日やることを、紙の付箋に書いてはなくしてしまう", "「今日やること」に書いておけば、このブラウザに残るので、なくす心配がありません。終わったものにチェックを付けると線が引かれます。"],
-        ["締切の一覧をExcelで上司と共有したい", "「Excelに書き出す」を押すと、残り日数と状態を計算する関数の入ったファイルができます。Excelで開くたびに数字が更新されるので、そのまま共有できます。"],
+        ["締切の一覧をExcelで上司と共有したい", "「Excelに書き出す」を押すと、残り日数と状態を計算する関数の入ったCSVファイル（Excelで開ける表のファイル）ができます。Excelで開くたびに数字が更新されるので、そのまま共有できます。"],
         ["Excelで「今日から期限まで何日」を出す関数を、毎回調べている", "締切のカードの「Excelで計算」を開くと、その締切の日付を入れた関数が表示され、ワンクリックでコピーできます。"],
       ],
     },
@@ -50,7 +49,7 @@ const SCENES = {
 };
 
 /* 先の期日は、メールで知らせる自社サービス「きじかん」へ。リンクだけで、入れた締切は渡さない（規約の「送信しません」のまま）
-   どこから来たかは、きじかん側で utm_content（composer＝追加欄／guide＝読みもの）を見て分ける */
+   どこから来たかは、きじかん側で utm_content（composer＝追加欄／cta＝相談の箱）を見て分ける */
 const KIJICAN = (from: string) => `https://kijican.jp/?utm_source=insemble-tools&utm_medium=referral&utm_campaign=deadline&utm_content=${from}`;
 
 /* Claude Design のフォント（数字は Bricolage Grotesque、日本語は Zen Kaku Gothic New、関数は IBM Plex Mono） */
@@ -81,9 +80,46 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
     ["アプリとして", "PWA（ホーム画面やデスクトップに置けるWebアプリ）として使えます。置いたあとは、ネットにつながっていなくても開けます。パソコンの Chrome・Edge で置いた場合は、アイコンを右クリックすると「締切を追加」をすぐに開けます。"],
   ]}
   relatedSub="締切に向けた進行表をExcelで配りたいときは、スケジュール→Excelメーカーで作れます。"
-  corp="たとえば「Notionのタスクを自動で読み込み、チーム全員が同じ締切の一覧を見られる」ような、社内向けの専用ツールもつくれます。"
+  guide={{
+    "toc": "締切管理のコツ",
+    "title": "見落とさない締切管理のコツ",
+    "items": [
+      {
+        "h": "締切管理は「記録すること」と「気づくこと」を分けて考える",
+        "p": [
+          "締切をカレンダーやNotion、Excelに登録していても、確認するのを忘れると、提出の直前まで気づけないことがあります。締切管理では、日付を記録する場所だけでなく、残り時間が目に入る仕組みも大切です。",
+          "あと何日？は、登録した締切までの残り時間を数え続けるツールです。NotionやExcelの一覧をまとめて貼り付け、作業中に見える場所に置いておけます。管理表を置き換えるものではなく、管理表にある期限を見落とさないための補助として使ってください。"
+        ]
+      },
+      {
+        "h": "納期・提出期限は、行動が必要な日ごとに分けて登録する",
+        "p": [
+          "納品日だけを登録すると、その前に必要な確認や提出が後回しになりがちです。Web制作なら「初稿の提出」「お客さんの確認の返答期限」「最終データの納品」、営業なら「見積書の提出」「申込期限」のように、行動が必要になる日ごとに締切を分けましょう。",
+          "締切には担当者の名前も付けられます。ただし、データはこのブラウザの中にだけ保存されるため、メンバーと自動で共有したり、通知を送ったりするものではありません。"
+        ]
+      }
+    ]
+  }}
+  cta={{
+    "h": "締切を見るだけでなく、通知や社内の管理まで整えたい方へ",
+    "p": [
+      "先の期日にメールで知らせてほしいときは、insembleの「きじかん」をご覧ください。契約の更新や資格の更新など、ふだんは意識しにくい期日に向いています。",
+      "案件ごとの期限管理や、担当者への連絡など、今の運用に合う仕組みを考えている方は、困っていることを添えてご相談ください。"
+    ],
+    "btns": [
+      [
+        "期限管理の仕組みを相談する",
+        "https://www.insemble.co.jp/contact"
+      ],
+      [
+        "きじかんを見る",
+        KIJICAN("cta"),
+        true
+      ]
+    ]
+  }}
   appCategory="BusinessApplication"
-  updated="2026-11-12"
+  updated="2026-11-13"
   app={{ manifest: "/deadline/manifest.webmanifest", icon: "/deadline/apple-touch-icon.png", themeColor: "#F4F7F7" }}
   fonts={FONTS}
 >
@@ -177,7 +213,7 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
             </div>
             <div class="an-bulk" id="an-bulk" hidden>
               <label class="an-blabel" for="an-bulk-in">1行に1件ずつ、「タスク名」と「期限」をタブかカンマで区切って貼り付けてください。3列目に担当を入れると、人ごとに分けられます。CSVファイルも読み込めます。</label>
-              <pre class="an-eg" id="an-eg" aria-label="入力の例"></pre>
+              <pre class="an-eg" id="an-eg"></pre>
               <textarea class="an-bta" id="an-bulk-in" rows="5" spellcheck="false" placeholder="ここに貼り付け（CSVファイルをドロップしても読み込めます）"></textarea>
               <div class="an-frow">
                 <label class="an-file">
@@ -186,7 +222,7 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
                 </label>
                 <span class="an-fname" id="an-fname" aria-live="polite"></span>
               </div>
-              <p class="an-fhint">「Excelに書き出す」で保存したファイルなら、完了の印もそのまま戻ります。すでに入っている締切は、二重には入りません。</p>
+              <p class="an-fhint">「Excelに書き出す」で保存したCSVファイルなら、完了の印もそのまま戻ります。すでに入っている締切は、二重には入りません。</p>
               <p class="an-bres" id="an-bres" aria-live="polite"></p>
             </div>
             <div class="an-cfoot">
@@ -247,24 +283,10 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
     </div>
   </div>
 
-  <section class="wrap sec" slot="guide">
-    <SectionHead id="kijican" kicker="もっと先の期日は" title="数か月先の期日は「きじかん」で" sub="あと何日？は、目に入るところに置いて、残り時間を見るための付箋です。半年先の契約更新のように、ふだんは意識しない先の期日には、その日にメールで知らせてくれる「きじかん」が向いています。どちらもインセンブルがつくっています。" />
-    <div class="about solo reveal">
-      <div>
-        <div class="log-h">使い分け</div>
-        <dl>
-          <div><dt>あと何日？</dt><dd>近い締切の残り時間を、いつも見えるところに出しておく付箋です。通知は出さず、データはこのブラウザの中だけに保存します。</dd></div>
-          <div><dt>きじかん</dt><dd>決めた日に、自分や担当者へメールで知らせるサービスです。最長1年先までの期日に使え、免許・資格の更新、契約の更新、登記など、忘れると困る先の期日に向いています。</dd></div>
-        </dl>
-        <a class="more-link" href={KIJICAN("guide")} target="_blank" rel="noopener">きじかんを見る<Icon name="arrow" size={15} /></a>
-      </div>
-    </div>
-  </section>
-</ToolPage>
-
 <script>
   import "../../scripts/tools/deadline.js";
 </script>
+</ToolPage>
 
 <style is:global>
   /* ===== あと何日？（Claude Design のデザインを写したもの。色・寸法はデザインの値のまま） ===== */
@@ -577,20 +599,22 @@ const PLUS = (s: number, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0
   /* アプリとして開いたとき：サイトの枠を隠して、ツールだけを画面いっぱいに */
   @media (display-mode:standalone){
     body{background:#F4F7F7}
-    .hdr,.tooltop,.tz-hero,.read-zone,.corp,.ftr{display:none!important}
+    .hdr,.tooltop,.tp-head,.read-zone,.corp,.ftr{display:none!important}
     .tool-zone{padding:0;border:0;background:#F4F7F7}
     .tool-zone>.wrap{max-width:none;padding:0}
     .an-panel{margin:0;border:0;border-radius:0;box-shadow:none}
+    .an-panel::before{display:none}
     .an{min-height:100dvh}
     .an-hd{position:sticky;top:0;z-index:5}
     .an-pw{display:inline}
     .an-ft{justify-content:space-between}
   }
   html.an-app body{background:#F4F7F7}
-  html.an-app :is(.hdr,.tooltop,.tz-hero,.read-zone,.corp,.ftr){display:none!important}
+  html.an-app :is(.hdr,.tooltop,.tp-head,.read-zone,.corp,.ftr){display:none!important}
   html.an-app .tool-zone{padding:0;border:0;background:#F4F7F7}
   html.an-app .tool-zone>.wrap{max-width:none;padding:0}
   html.an-app .an-panel{margin:0;border:0;border-radius:0;box-shadow:none}
+  html.an-app .an-panel::before{display:none}
   html.an-app .an{min-height:100dvh}
   html.an-app .an-hd{position:sticky;top:0;z-index:5}
   html.an-app .an-pw{display:inline}

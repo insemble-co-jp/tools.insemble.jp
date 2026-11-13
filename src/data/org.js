@@ -11,6 +11,7 @@ const ORG = {
   "@id": ORG_ID,
   name: "insemble",
   alternateName: "インセンブル",
+  legalName: "株式会社インセンブル", // 規約ページに表示している正式な社名
   url: "https://www.insemble.co.jp/",
   address: { "@type": "PostalAddress", addressRegion: "北海道", addressLocality: "札幌市", addressCountry: "JP" },
 };

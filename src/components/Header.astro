@@ -9,11 +9,11 @@ const { nav } = Astro.props;
 <!-- スクロールで .on が付く（src/scripts/site.js） -->
 <header class="hdr">
   <div class="wrap hdr-in">
-    <a class="logo" href="/">
+    <a class="logo" href="/" aria-label="insemble tools（トップページ）">
       <span class="logo-mark"><Icon name="bolt" size={17} /></span>
       <span class="logo-tx">insemble<span class="logo-sub">tools</span></span>
     </a>
-    <nav class="nav">{nav.map(([href, label]) => <a href={href}>{label}</a>)}</nav>
+    <nav class="nav" aria-label="サイトのメニュー">{nav.map(([href, label]) => <a href={href}>{label}</a>)}</nav>
     <a class="btn btn-ghost hdr-cta" href="https://www.insemble.co.jp/contact" target="_blank" rel="noopener">制作のご相談</a>
   </div>
 </header>

@@ -328,7 +328,7 @@ function drawText() {
   el.out.innerHTML = `
     <div class="out-head">
       <div>
-        <p class="out-t">テキスト <b>${t.length}</b>ページ分</p>
+        <h2 class="out-t">テキスト <b>${t.length}</b>ページ分</h2>
         <p class="out-d">${chars.toLocaleString()}文字（空白をのぞく）</p>
       </div>
       <div class="acts">
@@ -382,7 +382,7 @@ function drawImages() {
   el.out.innerHTML = `
     <div class="out-head">
       <div>
-        <p class="out-t">画像 <b>${list.length}</b>枚</p>
+        <h2 class="out-t">画像 <b>${list.length}</b>枚</h2>
         <p class="out-d">PDFに貼られている写真・イラストを、1枚ずつ取り出しました${list.length ? `（合計 ${fmtSize(total)}）` : ""}</p>
       </div>
       <div class="acts">
@@ -404,7 +404,7 @@ function drawPages() {
   el.out.innerHTML = `
     <div class="out-head">
       <div>
-        <p class="out-t">ページ画像 <b>${ok.length}</b>枚</p>
+        <h2 class="out-t">ページ画像 <b>${ok.length}</b>枚</h2>
         <p class="out-d">見たままのページを PNG にしました</p>
       </div>
       <div class="acts">

@@ -80,6 +80,24 @@ function onInput() {
 input.addEventListener("input", onInput);
 clearBtn.addEventListener("click", () => { input.value = ""; onInput(); input.focus(); });
 
+// キーボード：「/」か ⌘K / Ctrl+K で検索欄へ。検索欄で Esc を押すと入力を消す（DESIGN.md §9）
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  const typing = t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+  const cmdK = (e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k";
+  if (cmdK || (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey)) {
+    e.preventDefault();
+    input.focus();
+    input.select();
+  }
+});
+input.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || !input.value) return;
+  e.preventDefault(); // type=search の標準の消去と二重にならないように
+  input.value = "";
+  onInput();
+});
+
 // Enter：探した結果の場所へ送るだけ（スマホではキーボードを閉じる）
 form.addEventListener("submit", (e) => {
   e.preventDefault();

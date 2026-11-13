@@ -18,6 +18,8 @@ const soon = HUB.TOOLS.filter((t) => t.status === "soon");
 const urlTools = live.filter((t) => t.url);
 const catLabel = (id: string) => HUB.CATS.find((c) => c.id === id)?.label ?? "";
 const soonCats = HUB.CATS.filter((c) => soon.some((t) => t.cat === c.id));
+/* 処理のしかた（見本の「t-proc」）。URLを調べるツールだけサーバーを経由し、それ以外はブラウザの中で処理する */
+const procLabel = (t: (typeof HUB.TOOLS)[number]) => (t.url ? "URLを取得" : "端末内で処理");
 /* 検索で拾うことば（全角・半角をそろえて小文字に。hub.js も同じようにそろえて比べる） */
 const searchKey = (t: (typeof HUB.TOOLS)[number]) => [t.name, t.desc, t.slug, catLabel(t.cat), t.kw ?? ""].join(" ").normalize("NFKC").toLowerCase();
 
@@ -32,7 +34,7 @@ const jsonLd = [
 const NAV: [string, string][] = [["#tools", "ツール"], ["#learn", "学ぶ"], ...(HUB.SHOW_UPDATES ? [["#updates", "更新情報"] as [string, string]] : []), ["#faq", "よくある質問"]];
 const FOOT: { h: string; items: [string, string][] }[] = [
   { h: "ツール", items: [...live.map((t) => [HUB.label(t), "/" + t.slug + "/"] as [string, string]), ["ツール一覧", "#tools"]] },
-  { h: "学ぶ", items: [["OGPタグ辞典", "/ogp/#glossary"], ...(HUB.SHOW_UPDATES ? [["更新情報", "#updates"] as [string, string]] : [])] },
+  { h: "学ぶ", items: [...HUB.LEARN.filter((l) => !l.soon).map((l) => [l.title, l.href] as [string, string]), ...(HUB.SHOW_UPDATES ? [["更新情報", "#updates"] as [string, string]] : [])] },
   { h: "サポート", items: [["よくある質問", "#faq"]] },
 ];
 ---
@@ -93,7 +95,10 @@ const FOOT: { h: string; items: [string, string][] }[] = [
               <a class="f-link" href={"/" + t.slug + "/"} data-open={t.slug}>
                 <span class="f-top">
                   <span class="f-ic"><Icon name={t.icon} size={22} tool /></span>
-                  <span class="f-date f-cat">{catLabel(t.cat)}</span>
+                  <span class="f-meta">
+                    <span class="f-cat">{catLabel(t.cat)}</span>
+                    <span class="f-proc">{procLabel(t)}</span>
+                  </span>
                 </span>
                 <span class="f-name">{t.name}{t.isNew && <span class="lbl new">NEW</span>}</span>
                 <span class="f-desc">{t.desc}</span>
@@ -134,13 +139,13 @@ const FOOT: { h: string; items: [string, string][] }[] = [
                 <div class="t-grid">
                   {items.map((t) => (
                     <div class="t-row soon" data-search={searchKey(t)}>
-                      <a class="t-link" aria-disabled="true">
+                      <span class="t-link">
                         <span class="t-ic"><Icon name={t.icon} size={19} tool /></span>
                         <span class="t-body">
                           <span class="t-name">{t.name}<span class="lbl">準備中</span></span>
                           <span class="t-desc">{t.desc}</span>
                         </span>
-                      </a>
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -153,7 +158,7 @@ const FOOT: { h: string; items: [string, string][] }[] = [
 
     <!-- ===== 学ぶ ===== -->
     <section class="wrap sec">
-      <SectionHead id="learn" kicker="学ぶ" title="使いながら、分かる" sub="用語の意味や設定のコツを、ツールと行き来しながら読めるようにまとめています。" />
+      <SectionHead id="learn" kicker="学ぶ" title="OGP・締切管理・予定表づくりの解説" sub="使いながら、分かる。用語の意味や設定のコツを、ツールと行き来しながら読めるようにまとめています。" />
       <div class="learn">
         {HUB.LEARN.map((l) => {
           const inner = (
@@ -215,8 +220,7 @@ const FOOT: { h: string; items: [string, string][] }[] = [
   </main>
 
   <Footer cols={FOOT} />
+  <script>
+    import "../scripts/hub.js";
+  </script>
 </Base>
-
-<script>
-  import "../scripts/hub.js";
-</script>

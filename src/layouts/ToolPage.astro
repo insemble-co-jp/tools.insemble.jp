@@ -1,13 +1,14 @@
 ---
 /* 端末内で動くツールページの共通の枠（PDFばらし屋・席順メーカーなど）
    OGPチェッカーと同じ2層：上＝道具ゾーン（paper。説明は足さない）／下＝読みもの（白）
-   ツール本体は <slot />。読みもの：使い方 → こんなときに使えます（scenes）→ <slot name="guide" /> → よくある質問 → 関連ツール */
+   ツール本体は <slot />。読みもの：使い方 → こんなときに使えます（scenes）→ 実務のヒント（guide）→ <slot name="guide" />
+   → テーマ別の相談（cta）→ よくある質問 → 関連ツール → このツールについて → 運営（cta があるとき）／運営会社（ないとき）
+   見た目のもとは src/design_handoff_tools/（tools-base.css・tools-shell.js） */
 import Base from "./Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Corp from "../components/Corp.astro";
 import Icon from "../components/Icon.astro";
-import SectionHead from "../components/SectionHead.astro";
 import Faq from "../components/Faq.astro";
 import Scenes, { type SceneGroup } from "../components/Scenes.astro";
 import HUB from "../data/hub.js";
@@ -18,6 +19,10 @@ import "../styles/tools.css";
 /* 読みものの中から、ツールの操作をその場で始めるリンク（例：使い方の「締切を追加する」）
    押すとツール（#tool）へ移動する。do はツールの JS が [data-tool-do] のクリックを拾って動かす（拾わないツールでは移動だけ） */
 type Cta = { label: string; do?: string };
+/* 実務のヒント：ツールを使う前後に役立つ解説（2本）。目次（toc）にも出る */
+type Guide = { toc: string; kick?: string; title: string; items: { h: string; p: string[] }[] };
+/* テーマ別の相談：そのツールのテーマに合わせた相談の箱。あると末尾の大きな「運営会社」を出さず、運営の1行だけにする（誘いを2回出さない） */
+type Consult = { h: string; p: string[]; btns: [label: string, href: string, ghost?: boolean][] };
 
 interface Props {
   slug: string;
@@ -32,21 +37,23 @@ interface Props {
   scenes: { intro: string; groups: SceneGroup[] }; // こんなときに使えます（利用シーン）
   faq: { q: string; a: string; cta?: Cta }[];
   about: [string, string, boolean?][]; // 3つ目を true にすると「くわしくは利用規約をご覧ください。」を添える
-  corp: string;             // 下の「運営会社」に出す、このツールに合わせた一言
+  guide?: Guide;            // 実務のヒント
+  cta?: Consult;            // テーマ別の相談
+  corp?: string;            // cta がないときに、下の「運営会社」に出す、このツールに合わせた一言
   relatedSub?: string;      // 関連ツールの見出しの下に出す、つなぎの一言（例：席が決まったら、順番はルーレットで）
   appCategory?: string;     // schema.org の applicationCategory
   updated: string;          // 最終更新日 YYYY-MM-DD
   app?: { manifest: string; icon: string; themeColor: string }; // アプリとして置けるツール（PWA）だけ
   fonts?: string;           // このツールだけで使う Google Fonts の URL
 }
-const { slug, title, description, ogTitle, h1, lead, sub, meta, steps, scenes, faq, about, corp, relatedSub, appCategory = "UtilitiesApplication", updated, app, fonts } = Astro.props;
+const { slug, title, description, ogTitle, h1, lead, sub, meta, steps, scenes, faq, about, guide, cta, corp, relatedSub, appCategory = "UtilitiesApplication", updated, app, fonts } = Astro.props;
 
 /* 概要の最後には、どのツールでも同じ「料金」「免責」を付ける（書き方は規約 /terms/ にそろえる）
    3つ目を true にした行は、最後に「くわしくは利用規約（リンク）をご覧ください。」を添える */
 const aboutRows: [string, string, boolean?][] = [
   ...about,
   ["料金", "無料で、登録も要りません。PC・スマホのどちらでも使えます。"],
-  ["免責", "結果の正確さは保証しません。このツールを使って生じた損害について、当社に故意または重大な過失がある場合を除き、責任を負いません。", true],
+  ["免責", "結果の正確さは保証しません。このツールを使って生じた損害について、運営者に故意または重大な過失がある場合を除き、責任を負いません。", true],
 ];
 
 const tool = HUB.TOOLS.find((t) => t.slug === slug);
@@ -64,10 +71,13 @@ const jsonLd = [
 ];
 
 const NAV: [string, string][] = [["/#tools", "ツール一覧"], ["#howto", "使い方"], ["#faq", "よくある質問"]];
+/* 読みものの目次（見出しの横のピル）とフッターの「このページ」 */
+const TOC: [string, string][] = [["#scenes", "こんなときに"], ...(guide ? [["#guide", guide.toc] as [string, string]] : []), ["#faq", "よくある質問"], ["#related", "関連ツール"]];
 const FOOT: { h: string; items: [string, string][] }[] = [
   { h: "ツール", items: [...live.map((t) => [HUB.label(t), "/" + t.slug + "/"] as [string, string]), ["ツール一覧", "/#tools"]] },
-  { h: "このページ", items: [["使い方", "#howto"], ["こんなときに使えます", "#scenes"], ["よくある質問", "#faq"], ["関連ツール", "#related"]] },
+  { h: "このページ", items: [["使い方", "#howto"], ...TOC.map(([h, l]) => [l, h] as [string, string])] },
 ];
+const ext = (href: string) => /^https?:/.test(href);
 
 /* 関連ツール：hub.js の rel に書いた順 → 同じカテゴリの公開中 → ほかの公開中 の順に4つ */
 const rel = tool?.rel ?? [];
@@ -87,20 +97,17 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
             <li><span aria-current="page">{name}</span></li>
           </ol>
         </nav>
-        <div class="tmeta">
-          {meta.map(([ic, text]) => <span><Icon name={ic} size={13} />{text}</span>)}
-          <span>最終更新 <time datetime={updated}>{updated.replace(/-/g, "/")}</time></span>
+        <div class="tmeta tp-trust">
+          {meta.map(([ic, text]) => <span class="ok"><Icon name={ic} size={13} />{text}</span>)}
+          <span class="upd">最終更新 <time datetime={updated}>{updated.replace(/-/g, "/")}</time></span>
         </div>
       </div>
 
-      <section class="hero tz-hero">
-        <div class="hero-glow"></div>
-        <div class="wrap hero-in">
-          <h1 class="badge"><Icon name="sparkle" size={14} />{h1}</h1>
-          <p class="hero-title"><span class="hero-a">{lead[0]}</span><span class="hl">{lead[1]}</span>{lead[2]}</p>
-          <p class="tz-sub">{Array.isArray(sub) ? sub.map((s, i) => <>{i > 0 && <br class="dt" />}{s}</>) : sub}</p>
-        </div>
-      </section>
+      <div class="wrap tp-head">
+        <h1 class="tp-eyebrow">{h1}</h1>
+        <p class="tp-catch">{lead[0]}<em>{lead[1]}</em>{lead[2]}</p>
+        <p class="tp-lead">{(Array.isArray(sub) ? sub : [sub]).map((s) => <span>{s}</span>)}</p>
+      </div>
 
       <!-- 入れた名前・予定・PDFの中身は、Clarity の録画で伏せ字にする -->
       <section class="wrap" aria-label={name} data-clarity-mask="True">
@@ -109,44 +116,76 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
     </div>
 
     <!-- ===== 読みものゾーン ===== -->
-    <div class="read-zone" id="learn">
-      <div class="wrap">
-        <div class="read-head">
+    <div class="read-zone tp-read" id="learn">
+      <section class="wrap sec" id="howto" aria-labelledby="howto-t">
+        <div class="tp-h2row">
           <div>
-            <div class="read-k"><Icon name="book" size={15} />はじめての方へ</div>
-            <h2 class="read-t">{name}の使い方</h2>
+            <span class="tp-kick">はじめての方へ</span>
+            <h2 class="tp-h2" id="howto-t">{name}の使い方</h2>
           </div>
-          <nav class="read-toc" aria-label="このセクションの目次">
-            {[["#howto", "使い方"], ["#scenes", "こんなときに"], ["#faq", "よくある質問"], ["#related", "関連ツール"]].map(([h, l]) => <a href={h}>{l}</a>)}
+          <nav class="read-toc" aria-label="このページの目次">
+            {TOC.map(([h, l]) => <a href={h}>{l}</a>)}
           </nav>
         </div>
-      </div>
-
-      <section class="wrap sec sec-tight" id="howto" style="scroll-margin-top:72px" aria-label="使い方">
-        <div class="steps reveal">
+        <ol class="steps reveal">
           {steps.map((s, i) => (
-            <div class="step">
-              <div class="step-n">{i + 1}</div>
-              <div class="step-t">{s.t}</div>
+            <li class="step">
+              <div class="step-n" aria-hidden="true">{i + 1}</div>
+              <h3 class="step-t">{s.t}</h3>
               <p class="step-d">{s.d}</p>
               {s.cta && <a class="more-link step-cta" href="#tool" data-tool-do={s.cta.do}>{s.cta.label}<Icon name="arrow" size={15} /></a>}
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </section>
 
-      <Scenes intro={scenes.intro} groups={scenes.groups} />
+      <Scenes intro={scenes.intro} groups={scenes.groups} fold />
+
+      {guide && (
+        <section class="wrap sec" id="guide" aria-labelledby="guide-t">
+          <span class="tp-kick">{guide.kick ?? "実務のヒント"}</span>
+          <h2 class="tp-h2 tp-h2-gap" id="guide-t">{guide.title}</h2>
+          <div class="tp-guide">
+            {guide.items.map((a) => (
+              <article class="tp-guide-a reveal">
+                <h3>{a.h}</h3>
+                {a.p.map((x) => <p>{x}</p>)}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <slot name="guide" />
 
-      <section class="wrap sec">
-        <SectionHead id="faq" kicker="よくある質問" title="つまずきやすいところと、その答え" />
+      {cta && (
+        <section class="wrap tp-cta-sec" aria-labelledby="consult-t">
+          <div class="tp-cta">
+            <div class="tp-cta-main">
+              <span class="tp-kick">insemble に相談する</span>
+              <h2 id="consult-t">{cta.h}</h2>
+              {cta.p.map((x) => <p>{x}</p>)}
+            </div>
+            <div class="tp-cta-a">
+              {cta.btns.map(([l, u, ghost]) => (
+                <a class={"btn " + (ghost ? "btn-ghost" : "btn-primary")} href={u} target={ext(u) ? "_blank" : undefined} rel={ext(u) ? "noopener" : undefined}>{l}<Icon name="arrow" size={15} /></a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section class="wrap sec" aria-labelledby="faq-t">
+        <span class="tp-kick" id="faq">よくある質問</span>
+        <h2 class="tp-h2 tp-h2-gap" id="faq-t">つまずきやすいところと、その答え</h2>
         <Faq items={faq} />
       </section>
 
-      <section class="wrap sec sec-tight">
-        <SectionHead id="related" kicker="関連ツール" title="あわせて使えるツール" sub={(relatedSub ?? "") + "どれも無料・登録不要で、ブラウザだけで使えます。"} />
-        <div class="tools">
+      <section class="wrap sec" aria-labelledby="related-t">
+        <span class="tp-kick" id="related">関連ツール</span>
+        <h2 class="tp-h2" id="related-t">あわせて使えるツール</h2>
+        <p class="tp-desc">{(relatedSub ? relatedSub : "") + "どれも無料・登録不要で、ブラウザだけで使えます。"}</p>
+        <div class="tools tp-rel">
           {related.map((t) => (
             <a class="t-row reveal" href={"/" + t.slug + "/"}>
               <span class="t-ic"><Icon name={t.icon} size={20} tool /></span>
@@ -161,20 +200,27 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
         <a class="more-link" href="/#tools">すべてのツールを見る<Icon name="arrow" size={15} /></a>
       </section>
 
-      <section class="wrap sec sec-tight">
-        <SectionHead id="about" kicker="このツールについて" title="安心して使っていただくために" />
-        <div class="about solo">
-          <div>
-            <div class="log-h">概要</div>
-            <dl>
-              {aboutRows.map(([k, v, terms]) => <div><dt>{k}</dt><dd>{v}{terms && <>くわしくは<a href="/terms/">利用規約</a>をご覧ください。</>}</dd></div>)}
-            </dl>
-          </div>
-        </div>
+      <section class="wrap sec" aria-labelledby="about-t">
+        <span class="tp-kick" id="about">このツールについて</span>
+        <h2 class="tp-h2 tp-h2-gap" id="about-t">安心して使っていただくために</h2>
+        <dl class="tp-about">
+          {aboutRows.map(([k, v, terms]) => <div><dt>{k}</dt><dd>{v}{terms && <>くわしくは<a href="/terms/">利用規約</a>をご覧ください。</>}</dd></div>)}
+        </dl>
       </section>
+
+      {cta && (
+        <section class="wrap tp-op" aria-label="運営会社">
+          <p class="tp-op-in">
+            <span class="tp-op-k">運営</span>
+            <b>insemble</b>
+            <span class="tp-op-d">インセンブル｜北海道 札幌市のWeb制作会社です。サイト制作と、業務に合わせたWebツールの開発をしています。</span>
+            <a href="https://www.insemble.co.jp/" target="_blank" rel="noopener">会社サイト<Icon name="arrow" size={14} /></a>
+          </p>
+        </section>
+      )}
     </div>
 
-    <Corp title={["このようなWebツールを、", "会社やチームの専用につくることもできます。"]} desc={corp} cta="Webツール制作のご相談" />
+    {!cta && <Corp title={["このようなWebツールを、", "会社やチームの専用につくることもできます。"]} desc={corp ?? "業務や目的に合わせた、専用のWebツールをつくれます。"} cta="Webツール制作のご相談" />}
   </main>
 
   <Footer cols={FOOT} />

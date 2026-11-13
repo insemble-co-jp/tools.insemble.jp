@@ -3,7 +3,7 @@
    HTML を文字列で組み立てて差し込み、クリックは親要素でまとめて受ける。
    値はチェックしたページから来るので、HTML に入れる前に必ず esc() を通す。
    =========================================================== */
-import { svg } from "../../lib/icons.js";
+import { svg, toolSvg } from "../../lib/icons.js";
 import { PLATFORMS, FRAMEWORKS, frameworkCode } from "../../lib/ogp-code.js";
 import { copyBtn, onCopy } from "../copy.js";
 
@@ -183,7 +183,7 @@ function codeTab(d, s) {
 const TOOL = "https://tools.insemble.jp/ogp";
 function shareBar(d) {
   const link = `${TOOL}/#url=${encodeURIComponent(d.url)}`; // # で渡すと、開いた人のURLもサーバーのログに残らない
-  const text = `「${d.domain}」のOGPスコアは${d.score}点！SNSでの見え方を無料でチェックできます`;
+  const text = `「${d.domain}」のOGPスコアは${d.score}点。SNSでの見え方を無料でチェックできます`;
   const enc = encodeURIComponent;
   const targets = [
     { name: "Xでポスト", color: "#0f1419", glyph: "𝕏", href: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(link)}&hashtags=OGPチェッカー` },
@@ -201,7 +201,7 @@ function shareBar(d) {
       <i style="left:16%;top:74%;border:2px solid var(--primary);opacity:.3"></i>
     </div>
     <div class="share-copy">
-      <div class="share-emoji" aria-hidden="true">📣</div>
+      <div class="share-emoji" aria-hidden="true">${toolSvg("share", 22)}</div>
       <div>
         <h2 class="share-h">この結果をシェアしよう</h2>
         <p class="share-sub">いまチェックしたURLの結果を開けるリンクを、SNSやLINEで送れます。<br class="dt">チームでの確認や、このツールを紹介するときにお使いください。</p>
