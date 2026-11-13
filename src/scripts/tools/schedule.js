@@ -37,6 +37,8 @@ const el = {
   reset: $("#sch-reset"),
   saved: $("#sch-saved"),
   resetAll: $("#sch-reset-all"),
+  sample: $("#sch-sample"),
+  acts: $("#sch-acts"),
 };
 
 const tpl = picker($("#sch-tpl"), (v) => { el.tplDesc.textContent = getTemplate(v).desc; save(); preview(); });
@@ -259,14 +261,33 @@ function model() {
   return getTemplate(tpl.get()).build(entries(), { title: docTitle(), note: note() });
 }
 
+/* 見本：予定もタイトルもまだ無いときだけ、見本の予定でプレビューを出す（表の形を切り替えると見本も切り替わる）。
+   見本は行に入れず、一時保存もしない。書き出しのボタンは、自分の予定を入れてから出す */
+function sampleEntries() {
+  const day = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const d1 = day(7), d2 = day(8);
+  return [
+    { date: d1, start: "13:00", end: "13:30", title: "開場・受付", who: "田中", note: "名札を配る" },
+    { date: d1, start: "13:30", end: "13:40", title: "開会のあいさつ", who: "佐藤", note: "" },
+    { date: d1, start: "13:40", end: "14:40", title: "部署ごとの発表", who: "各部署", note: "1部署10分" },
+    { date: d1, start: "14:40", end: "14:50", title: "休憩", who: "", note: "" },
+    { date: d1, start: "14:50", end: "15:30", title: "グループワーク", who: "鈴木", note: "会議室A・B" },
+    { date: d1, start: "15:30", end: "15:45", title: "表彰・閉会", who: "佐藤", note: "" },
+    { date: d2, start: "10:00", end: "11:00", title: "片づけ・ふりかえり", who: "高橋", note: "アンケートを集計" },
+  ];
+}
+
 function preview() {
   const list = entries();
-  el.prevWrap.hidden = list.length === 0;
+  const isSample = list.length === 0 && !el.title.value.trim();
+  el.sample.hidden = !isSample;
+  el.acts.hidden = isSample;
+  el.prevWrap.hidden = list.length === 0 && !isSample;
   el.saved.hidden = list.length === 0 && !el.title.value;
   const warns = rows.map((r, i) => (r.start && r.end && r.end < r.start ? `${i + 1}行目は、終了の時刻が開始より前になっています。時刻を確かめてください。` : null)).filter(Boolean);
   showMsgs(el.msgs, warns.slice(0, 3).map((w) => ["warn", w]));
-  if (!list.length) { el.prev.innerHTML = ""; return; }
-  const m = model();
+  if (!list.length && !isSample) { el.prev.innerHTML = ""; return; }
+  const m = isSample ? getTemplate(tpl.get()).build(sampleEntries(), { title: "社内イベント 進行表（見本）", note: note() }) : model();
   const merged = new Set(m.merges.map((r) => Number(r.match(/\d+/)[0])));
   const n = m.cols.length;
   el.prev.innerHTML = `<table><tbody>${m.rows.map((row, ri) => {

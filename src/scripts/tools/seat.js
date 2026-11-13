@@ -3,7 +3,7 @@
    名前 → 卓の数・人数 → 席を決める → シャッフル／画像で保存／コピー
    振り分けは src/lib/arrange.js（条件の追加もそちら）
    =========================================================== */
-import { $, esc, svg, download, copyText, showMsgs, picker, canvasToBlob, roundRect, fitText, FONT, INK, HUES, stamp, reveal, submitOnCtrlEnter } from "./common.js";
+import { $, esc, svg, download, copyText, showMsgs, picker, sampleNames, SAMPLE_NOTE, canvasToBlob, roundRect, fitText, FONT, INK, HUES, stamp, reveal, submitOnCtrlEnter } from "./common.js";
 import { peopleForm, readRules } from "./people.js";
 import { arrange } from "../../lib/arrange.js";
 
@@ -15,6 +15,8 @@ const msgs = $("#seat-msgs");
 const names = $("#seat-names");
 const apart = $("#seat-apart");
 const random = $("#seat-random");
+/* 見本の名前（開いたときから座席表の見本を出す。peopleForm より先に入れて、人数の表示にも反映させる） */
+const sample = sampleNames(names, ["田中", "佐藤", "鈴木", "高橋", "伊藤", "渡辺", "山本", "中村", "小林", "加藤", "吉田", "山田", "佐々木", "松本", "井上", "木村"]);
 const pf = peopleForm({ names, count: $("#seat-names-count"), groups: $("#seat-groups"), per: $("#seat-per"), summary: $("#seat-sum"), unit: "卓" });
 const shape = picker($("#seat-shape"), () => { if (result) { result.shape = shape.get(); draw(false); } });
 const emptyHtml = out.innerHTML;
@@ -34,7 +36,7 @@ function decide(scroll = true) {
   const notes = [...warnings, ...rw].map((w) => ["warn", w]);
   if (unmet > 0) notes.push(["warn", `人数の都合で、別の卓にしたい組み合わせのうち${unmet}組が同じ卓になりました。卓の数を増やすと、別々にしやすくなります。`]);
   showMsgs(msgs, notes);
-  result = { people, tables: groups, shape: shape.get() };
+  result = { people, tables: groups, shape: shape.get(), sample: sample.on };
   draw(true);
   if (scroll && window.innerWidth <= 860) reveal(out);
 }
@@ -76,6 +78,7 @@ function draw() {
   out.innerHTML = `
     <div class="out-head">
       <div>
+        ${result.sample ? SAMPLE_NOTE("席を決める") : ""}
         <p class="out-t">座席表 <b>${tables.length}</b>卓・${people.length}人</p>
         <p class="out-d">${result.shape === "round" && !roundTooMany ? "丸テーブルで表示しています。いちばん上の席から時計回りに並んでいます。" : `${roundTooMany ? `丸テーブルで表示できるのは1卓${ROUND_MAX}人までなので、長机で表示しています。` : "長机で表示しています。"}左右の席が向かい合わせです。`}</p>
       </div>
@@ -205,6 +208,7 @@ out.addEventListener("click", async (e) => {
     catch (err) { showMsgs(msgs, [["err", "座席表を画像にできませんでした。卓や人数が多いと、ブラウザで大きな画像を作りきれないことがあります。もう一度「画像で保存」を押すか、「結果をコピー」で文字として持ち出してください。"]]); }
   }
   if (d === "reset") {
+    sample.off();
     result = null;
     out.innerHTML = emptyHtml;
     pf.reset();
@@ -213,3 +217,6 @@ out.addEventListener("click", async (e) => {
     names.focus();
   }
 });
+
+/* 開いたときに、見本の名前で座席表を出しておく */
+if (sample.on) decide(false);

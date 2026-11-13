@@ -3,7 +3,7 @@
    名前 → 回す → 止まった人を大きく表示 → 外して次へ／結果の一覧
    当たる人は回す前に乱数で決め、その人の枠で止まるように角度を計算する
    =========================================================== */
-import { $, $$, esc, copyText, showMsgs, reduceMotion } from "./common.js";
+import { $, $$, esc, copyText, showMsgs, reduceMotion, sampleNames } from "./common.js";
 import { parsePeople, randInt } from "../../lib/arrange.js";
 
 const el = {
@@ -31,6 +31,7 @@ const el = {
   copy: $("#rl-copy"),
   restore: $("#rl-restore"),
   reset: $("#rl-reset"),
+  sample: $("#rl-sample"),
 };
 
 /* 枠の色（明るめ。文字は濃い色で読めるように） */
@@ -111,6 +112,7 @@ function draw() {
   else el.left.textContent = off.size ? `のこり ${idx.length}人（${people.length}人中）` : `${idx.length}人`;
   drawCands();
   drawHistory();
+  el.sample.hidden = !sample.on;
 }
 
 function drawHistory() {
@@ -206,6 +208,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ---------- 操作 ---------- */
+/* 見本の名前（開いたときから見本の名前でルーレットを出す）。自分の名前を入れたら、見本で回した結果は消す */
+const sample = sampleNames(el.names, ["田中", "佐藤", "鈴木", "高橋", "伊藤", "渡辺", "山本", "中村"], () => { history = []; off.clear(); });
 el.names.addEventListener("input", readNames);
 el.title.addEventListener("input", () => { el.what.textContent = el.title.value.trim(); });
 $$("[data-preset]").forEach((b) => b.addEventListener("click", () => { el.title.value = b.dataset.preset; el.what.textContent = b.dataset.preset; }));
@@ -239,4 +243,5 @@ el.copy.addEventListener("click", () => {
   copyText(text, el.copy);
 });
 
+if (sample.on) readNames();
 draw();

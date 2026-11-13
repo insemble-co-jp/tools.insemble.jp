@@ -247,3 +247,8 @@
 
 /* 「見本」の札は黄色（デザイン見本の .sample-tag） */
 .sample-tag{color:var(--warn-ink);background:var(--warn-bg);border-color:transparent}
+
+/* 見本の結果の上に出す一行（席順・グループ分け・ルーレット・スケジュール→Excel）。自分の名前・予定を入れると消える */
+.out-sample{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;margin-bottom:var(--g-xs);font-size:14px;font-weight:700;color:var(--ink-2)}
+.out-sample[hidden],.acts[hidden]{display:none}
+.rl-stage.full .rl-sample{display:none}

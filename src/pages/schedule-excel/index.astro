@@ -149,10 +149,11 @@ const SCENES = {
     <section class="sch-prev-wrap" id="sch-prev-wrap" hidden aria-labelledby="sch-prev-h">
       <div class="out-head">
         <div>
+          <p class="out-sample" id="sch-sample" hidden><span class="sample-tag">見本</span>見本の予定で表示しています。「予定を追加」で自分の予定を入れると、入れ替わります。</p>
           <h2 class="out-t" id="sch-prev-h">プレビュー</h2>
           <p class="out-d">Excelでは、この形で書き出します</p>
         </div>
-        <div class="acts">
+        <div class="acts" id="sch-acts">
           <button type="button" class="btn btn-primary" id="sch-xlsx"><Icon name="download" size={16} />Excelで保存</button>
           <button type="button" class="btn btn-ghost" id="sch-csv"><Icon name="download" size={15} />CSVで保存</button>
           <button type="button" class="btn btn-ghost" id="sch-reset"><Icon name="reset" size={15} />リセット</button>

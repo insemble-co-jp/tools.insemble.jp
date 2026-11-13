@@ -99,6 +99,18 @@ export async function sampleFile(btn, type) {
   const blob = await r.blob();
   return new File([blob], btn.dataset.name, { type: type || blob.type });
 }
+/* 見本の名前（席順・グループ分け・ルーレット）：開いたときから見本の名前で結果を出しておく。
+   名前の欄が空のときだけ入れる（ブラウザが前の入力を戻したときは入れない）。
+   見本のまま欄を押すと全選択するので、そのまま打てば入れ替わる。最初に書き換えたところで見本ではなくなる */
+export const SAMPLE_NOTE = (what) => `<p class="out-sample"><span class="sample-tag">見本</span>見本の名前で表示しています。参加者の欄に名前を入れて「${what}」を押すと、入れ替わります。</p>`;
+export function sampleNames(field, list, onLeave) {
+  const text = list.join("\n");
+  let on = !field.value.trim();
+  if (on) field.value = text;
+  field.addEventListener("focus", () => { if (on && field.value === text) field.select(); });
+  field.addEventListener("input", () => { if (on) { on = false; onLeave?.(); } });
+  return { get on() { return on; }, off() { on = false; } };
+}
 export const SAMPLE_ERR = "見本を読み込めませんでした。インターネットの接続を確かめて、もう一度お試しください。";
 
 export const canvasToBlob = (canvas, type = "image/png", quality) =>
