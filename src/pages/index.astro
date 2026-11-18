@@ -16,6 +16,12 @@ import "../styles/hub.css";
 /* 並び順は hub.js の hot（こちらで決めたおすすめ順）。利用回数を数えられるようになったら uses 順も検討する */
 const live = HUB.TOOLS.filter((t) => t.status === "live").sort((a, b) => (a.hot ?? 99) - (b.hot ?? 99));
 const urlTools = live.filter((t) => t.url);
+/* 学ぶ：公開中のツールの解説だけを、ツールのカテゴリごとに（CATS の順） */
+const learn = HUB.LEARN.flatMap((l) => {
+  const t = live.find((x) => x.slug === l.tool);
+  return t ? [{ ...l, cat: t.cat, toolName: t.name }] : [];
+});
+const learnCats = HUB.CATS.filter((c) => learn.some((l) => l.cat === c.id));
 const catLabel = (id: string) => HUB.CATS.find((c) => c.id === id)?.label ?? "";
 /* 処理のしかた（見本の「t-proc」）。URLを調べるツールだけサーバーを経由し、それ以外はブラウザの中で処理する */
 const procLabel = (t: (typeof HUB.TOOLS)[number]) => (t.url ? "URLを取得" : "端末内で処理");
@@ -33,7 +39,7 @@ const jsonLd = [
 const NAV: [string, string][] = [["#tools", "ツール"], ["#learn", "学ぶ"], ...(HUB.SHOW_UPDATES ? [["#updates", "更新情報"] as [string, string]] : []), ["#faq", "よくある質問"]];
 const FOOT: { h: string; items: [string, string][] }[] = [
   { h: "ツール", items: [...live.map((t) => [HUB.label(t), "/" + t.slug + "/"] as [string, string]), ["ツール一覧", "#tools"]] },
-  { h: "学ぶ", items: [...HUB.LEARN.filter((l) => !l.soon).map((l) => [l.title, l.href] as [string, string]), ...(HUB.SHOW_UPDATES ? [["更新情報", "#updates"] as [string, string]] : [])] },
+  { h: "学ぶ", items: [...learn.map((l) => [l.title, l.href] as [string, string]), ...(HUB.SHOW_UPDATES ? [["更新情報", "#updates"] as [string, string]] : [])] },
   { h: "サポート", items: [["よくある質問", "#faq"], ["insemble tools について", "/about/"]] },
 ];
 ---
@@ -117,22 +123,25 @@ const FOOT: { h: string; items: [string, string][] }[] = [
 
     <!-- ===== 学ぶ ===== -->
     <section class="wrap sec">
-      <SectionHead id="learn" kicker="学ぶ" title="OGP・締切管理・予定表づくりの解説" sub="使いながら、分かる。用語の意味や設定のコツを、ツールと行き来しながら読めるようにまとめています。" />
-      <div class="learn">
-        {HUB.LEARN.map((l) => {
-          const inner = (
-            <>
-              <span class="l-kind">{l.kind}</span>
-              <span class="l-main">
-                <span class="l-title">{l.title}{l.soon ? <span class="lbl">準備中</span> : <Icon name="arrow" size={15} />}</span>
-                <span class="l-desc">{l.desc}</span>
-              </span>
-            </>
-          );
-          return l.soon
-            ? <div class="l-row soon reveal" aria-disabled="true">{inner}</div>
-            : <a class="l-row reveal" href={l.href}>{inner}</a>;
-        })}
+      <SectionHead id="learn" kicker="学ぶ" title="仕事がもう一段ラクになる、実務のヒント" sub={`各ツールのページに載せている解説を、分野ごとにまとめました（${learn.length}本）。ツールを使う前後に読むと、準備や仕上げで迷いにくくなります。`} />
+      <div class="learn-g">
+        {learnCats.map((c) => (
+          <section class="learn-cat" aria-labelledby={`learn-${c.id}`}>
+            <h3 class="learn-h" id={`learn-${c.id}`}>{c.label}</h3>
+            <div class="learn">
+              {learn.filter((l) => l.cat === c.id).map((l) => (
+                <a class="l-row reveal" href={l.href}>
+                  <span class="l-kind">{l.kind}</span>
+                  <span class="l-main">
+                    <span class="l-title">{l.title}<Icon name="arrow" size={15} /></span>
+                    <span class="l-desc">{l.desc}</span>
+                    <span class="l-tool">{l.toolName}のページ</span>
+                  </span>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
     </section>
 

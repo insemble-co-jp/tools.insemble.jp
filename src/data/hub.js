@@ -39,12 +39,21 @@ const HUB = (function () {
 
   ];
 
-  /* 学ぶ。soon: true のものはリンクしない（準備中の札だけ出す）。
-     ツールページに「実務のヒント」（ToolPage の guide → #guide）が入ったら、soon を外すと href へリンクする */
+  /* 学ぶ：各ツールのページにある解説（実務のヒント #guide・用語集・表示トラブル）への入口。トップで、ツールのカテゴリごとにまとめて出す
+     - tool：どのツールのページの解説か（カテゴリと、行に添えるツール名に使う。公開中のツールだけ出る）
+     - title：ページの見出しとそろえる。desc：2本の解説の要点を1文で（ページにないことは書かない）
+     ツールに「実務のヒント」を足したら、ここにも1件足す */
   const LEARN = [
-    { kind: "用語集", title: "OGPタグ辞典", desc: "og:title から twitter:card まで、意味と書き方を1語ずつ。", href: "/ogp/#glossary" },
-    { kind: "ガイド", title: "見落とさない締切管理のコツ", desc: "締切は「記録すること」と「気づくこと」を分けて考える。", href: "/deadline/#guide" },
-    { kind: "ガイド", title: "伝わる予定表・進行表の作り方", desc: "配る相手に合わせて表の形を選び、すき間と担当まで書いておく。", href: "/schedule-excel/#guide" },
+    { tool: "ogp", kind: "用語集", title: "OGPタグ辞典", desc: "og:title から twitter:card まで、意味と書き方を1語ずつ引ける。", href: "/ogp/#glossary" },
+    { tool: "ogp", kind: "トラブル", title: "シェアの画像が出ない・古いままのときの切り分け", desc: "SNSで画像が出ない、直したのに変わらない、Teams・Slackでだけ出ないときに確かめること。", href: "/ogp/#trouble" },
+    { tool: "photo-ledger", kind: "ガイド", title: "写真台帳を早く、見やすく作るコツ", desc: "撮る前にカメラの日時と撮る順番をそろえ、説明は「場所・部位」と「状態」を分けて書く。", href: "/photo-ledger/#guide" },
+    { tool: "image-split", kind: "ガイド", title: "きれいに切り分けるための撮り方のコツ", desc: "並べて撮るときのすき間と背景の選び方と、切り分けた画像をWebに載せる前の確認。", href: "/image-split/#guide" },
+    { tool: "seat", kind: "ガイド", title: "飲み会・懇親会の席決めのコツ", desc: "会場のテーブルを先に確かめ、上座・下座や、離したい人など配慮が必要な条件を整理しておく。", href: "/seat/#guide" },
+    { tool: "group", kind: "ガイド", title: "研修・ワークショップの班分けのコツ", desc: "人数だけでなく所属のかたよりも確かめ、条件は研修の目的に合わせてしぼる。", href: "/group/#guide" },
+    { tool: "roulette", kind: "ガイド", title: "抽選・順番決めをスムーズに進めるコツ", desc: "景品抽選の前にルールを3つだけ決め、決まった発表順や当番は記録に残しておく。", href: "/roulette/#guide" },
+    { tool: "deadline", kind: "ガイド", title: "見落とさない締切管理のコツ", desc: "締切は「記録すること」と「気づくこと」を分け、行動が必要な日ごとに登録する。", href: "/deadline/#guide" },
+    { tool: "schedule-excel", kind: "ガイド", title: "伝わる予定表・進行表の作り方", desc: "配る相手に合わせて表の形を選び、進行表には「すき間」と「担当」まで書いておく。", href: "/schedule-excel/#guide" },
+    { tool: "memory-game", kind: "作り方", title: "手作り神経衰弱をうまく作るコツ", desc: "写真は「真ん中」と「似すぎない」で選び、印刷するなら紙と裏面を先に決める。", href: "/memory-game/#guide" },
   ];
 
   const TRUST = [
