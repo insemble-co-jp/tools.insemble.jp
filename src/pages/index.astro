@@ -1,6 +1,7 @@
 ---
 /* ツールハブ（React なし）
-   いま使えるツールを最初に見せる / 準備中はたたんでおく / 学ぶ導線。動きは src/scripts/hub.js */
+   いま使えるツールを最初に見せる / 学ぶ導線。動きは src/scripts/hub.js
+   準備中のツール（hub.js の status: "soon"）は出さない（2026-11-18 に「これから公開するツール」をやめた） */
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -14,10 +15,8 @@ import "../styles/hub.css";
 
 /* 並び順は hub.js の hot（こちらで決めたおすすめ順）。利用回数を数えられるようになったら uses 順も検討する */
 const live = HUB.TOOLS.filter((t) => t.status === "live").sort((a, b) => (a.hot ?? 99) - (b.hot ?? 99));
-const soon = HUB.TOOLS.filter((t) => t.status === "soon");
 const urlTools = live.filter((t) => t.url);
 const catLabel = (id: string) => HUB.CATS.find((c) => c.id === id)?.label ?? "";
-const soonCats = HUB.CATS.filter((c) => soon.some((t) => t.cat === c.id));
 /* 処理のしかた（見本の「t-proc」）。URLを調べるツールだけサーバーを経由し、それ以外はブラウザの中で処理する */
 const procLabel = (t: (typeof HUB.TOOLS)[number]) => (t.url ? "URLを取得" : "端末内で処理");
 /* 検索で拾うことば（全角・半角をそろえて小文字に。hub.js も同じようにそろえて比べる） */
@@ -115,46 +114,6 @@ const FOOT: { h: string; items: [string, string][] }[] = [
         </div>
       </section>
     </div>
-
-    <!-- ===== これから公開するツール（ふだんはたたんでおく。点線アイコン＋灰色、リンクしない） ===== -->
-    <section class="band" id="catalog" style="scroll-margin-top:64px">
-      <div class="wrap sec sec-tight">
-        <details class="soon-box" id="soon-box">
-          <!-- 見出し（h2）と件数は分けておく（件数が見出しの文字に混ざらないように）。並べ方は hub.css の .soon-box>summary -->
-          <summary>
-            <h2 class="soon-t">これから公開するツール</h2>
-            <span class="feat-n soon-n" id="soon-n">{soon.length}</span>
-            <span class="soon-d">準備ができたものから、順に公開します。</span>
-            <Icon name="chevron" size={18} class="soon-chev" />
-          </summary>
-          {soonCats.map((c) => {
-            const items = soon.filter((t) => t.cat === c.id);
-            return (
-              <section class="cat" data-cat-sec={c.id}>
-                <div class="cat-head">
-                  <h3 class="cat-t">{c.label}</h3>
-                  <span class="cat-note">{c.note}</span>
-                  <span class="cat-n">{items.length}</span>
-                </div>
-                <div class="t-grid">
-                  {items.map((t) => (
-                    <div class="t-row soon" data-search={searchKey(t)}>
-                      <span class="t-link">
-                        <span class="t-ic"><Icon name={t.icon} size={19} tool /></span>
-                        <span class="t-body">
-                          <span class="t-name">{t.name}<span class="lbl">準備中</span></span>
-                          <span class="t-desc">{t.desc}</span>
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </details>
-      </div>
-    </section>
 
     <!-- ===== 学ぶ ===== -->
     <section class="wrap sec">

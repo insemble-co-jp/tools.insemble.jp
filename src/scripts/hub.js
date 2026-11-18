@@ -10,7 +10,7 @@ import H from "../data/hub.js";
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const bySlug = (s) => H.TOOLS.find((t) => t.slug === s);
+const bySlug = (s) => H.TOOLS.find((t) => t.slug === s && t.status === "live"); // お気に入り・最近使ったに出すのは公開中だけ
 
 /* ---------- 端末内の保存（お気に入り・最近使った） ---------- */
 const load = (k) => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch (e) { return []; } };
@@ -103,42 +103,25 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
   const v = input.value.trim();
   if (!v || looksUrl(v)) return;
-  const { live, soon } = filter(v);
+  const live = filter(v);
   input.blur();
   if (live) goTo("#tools");
-  else if (soon) goTo("#catalog");
 });
 
-/* ---------- 一覧の絞り込み（いま使えるツール＋これから公開するツール） ---------- */
+/* ---------- 一覧の絞り込み（いま使えるツール） ---------- */
 const liveRows = $$("#live-list [data-search]");
-const soonBox = $("#soon-box");
-const soonSecs = $$("[data-cat-sec]", soonBox);
-let userOpen = soonBox.open; // 絞り込む前に、自分で開いていたか
-soonBox.addEventListener("toggle", () => { if (!input.value.trim()) userOpen = soonBox.open; });
 
 function filter(raw) {
   // 全角・半角をそろえ、空白で区切ったことばがすべて含まれるものを出す（例：「ＰＤＦ 画像」）
   const terms = String(raw || "").trim().normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
   const hit = (r) => terms.every((t) => r.dataset.search.includes(t));
-  let live = 0, soon = 0;
+  let live = 0;
   liveRows.forEach((r) => { const ok = hit(r); r.hidden = !ok; if (ok) live++; });
-  soonSecs.forEach((sec) => {
-    let n = 0;
-    $$(".t-row", sec).forEach((r) => { const ok = hit(r); r.hidden = !ok; if (ok) n++; });
-    sec.hidden = !n;
-    $(".cat-n", sec).textContent = n;
-    soon += n;
-  });
   $("#live-n").textContent = live;
-  $("#soon-n").textContent = soon;
-  // 準備中だけに当たったときは、たたんでいる一覧を開いて見せる。ことばを消したら元に戻す
-  soonBox.open = terms.length ? soon > 0 && live === 0 ? true : soonBox.open : userOpen;
-  const box = $("#no-hit");
-  box.hidden = !terms.length || live > 0;
+  // 1つも当たらないときは「見つかりませんでした」（文言は index.astro の #no-hit に書いたまま使う）
+  $("#no-hit").hidden = !terms.length || live > 0;
   $("#no-hit-q").textContent = raw;
-  $(".no-hit-t", box).lastChild.textContent = soon ? "」に合うツールは、いま準備中です" : "」に合うツールが見つかりませんでした";
-  $(".no-hit-d", box).textContent = soon ? "下の「これから公開するツール」に載せています。公開まで、もうしばらくお待ちください。" : "「PDF」「席順」「締切」のように、短いことばにすると見つかりやすくなります。";
-  return { live, soon };
+  return live;
 }
 $("#no-hit-clear").addEventListener("click", () => { input.value = ""; onInput(); input.focus(); });
 

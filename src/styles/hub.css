@@ -379,17 +379,6 @@ code{font-family:var(--font-mono)}
   .f-row .fav{top:6px;right:-6px}
   .feat-note{display:none}
 }
-/* これから公開するツール（ふだんはたたむ） */
-.soon-box>summary{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2px 8px;cursor:pointer;list-style:none;padding:var(--g-sm) 0;border-top:3px solid var(--ink);border-bottom:1px solid var(--line)}
-.soon-box>summary::-webkit-details-marker{display:none}
-.soon-t{font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--ink)}
-.soon-n{justify-self:start}
-.soon-d{grid-column:1/3;font-size:13px;color:var(--muted)}
-.soon-chev{grid-column:3;grid-row:1/3;margin-left:8px;color:var(--muted);transition:transform .2s;flex-shrink:0}
-.soon-box[open] .soon-chev{transform:rotate(180deg)}
-.soon-box>summary:hover .soon-t{color:var(--primary-ink)}
-.soon-box .cat:first-of-type{margin-top:var(--g-md)}
-.soon-box .cat[hidden]{display:none}
 #no-hit{margin-top:var(--g-sm)}
 /* 検索欄（ボタンなし。type=search のブラウザ標準の×は消して、自前の×を使う） */
 .hub-search{padding:0 10px 0 18px}

@@ -71,14 +71,11 @@ const SCENES = {
   ],
 };
 
-/* 関連ツール：hub.js の rel に書いた公開中のツール → 同じカテゴリ（Web制作・SEO）の公開中 → 準備中 の順に5つ。公開中が無いうちは「これから公開」として出す */
+/* 関連ツール：ToolPage と同じ並べ方（hub.js の rel に書いた順 → 同じカテゴリ → ほか）で、公開中のツールだけを4つ。準備中は出さない */
 const rel = HUB.TOOLS.find((t) => t.slug === "ogp")?.rel ?? [];
-const related = [
-  ...rel.map((s) => HUB.TOOLS.find((t) => t.slug === s && t.status === "live")).filter((t) => !!t),
-  ...HUB.TOOLS.filter((t) => t.slug !== "ogp" && t.cat === "web" && !rel.includes(t.slug))
-    .sort((a, b) => (a.status === "live" ? -1 : 1) - (b.status === "live" ? -1 : 1)),
-].slice(0, 5);
-const relatedLive = related.some((t) => t.status === "live");
+const liveTools = HUB.TOOLS.filter((t) => t.status === "live" && t.slug !== "ogp");
+const rank = (t: (typeof liveTools)[number]) => (rel.includes(t.slug) ? rel.indexOf(t.slug) : rel.length + Number(t.cat !== "web"));
+const related = liveTools.sort((a, b) => rank(a) - rank(b)).slice(0, 4);
 const LOG = HUB.CHANGELOG.filter((u) => u.tool === "ogp");
 
 const ABOUT: [string, string, boolean?][] = [
@@ -268,26 +265,18 @@ const ABOUT: [string, string, boolean?][] = [
       </section>
 
       <section class="wrap sec sec-tight">
-        <SectionHead id="tools" kicker="関連ツール" {...(relatedLive
-          ? { title: "Web制作に関連するツール", sub: "支給されたPDFから画像や原稿を取り出すときは、PDFばらし屋が使えます。準備中のツールは、公開しだいここから使えるようになります。" }
-          : { title: "これから公開するツール", sub: "公開前のチェックに役立つツールを準備しています。" })} />
+        <SectionHead id="tools" kicker="関連ツール" title="Web制作に関連するツール" sub="支給されたPDFから画像や原稿を取り出すときは、PDFばらし屋が使えます。どれも無料・登録不要で、ブラウザだけで使えます。" />
         <div class="tools">
-          {related.map((t) => {
-            const soon = t.status === "soon";
-            const inner = (
-              <>
-                <span class="t-ic"><Icon name={t.icon} size={20} tool /></span>
-                <div class="t-main">
-                  <div class="t-name">{t.name}{t.isNew && <span class="lbl new">NEW</span>}{soon && <span class="lbl">準備中</span>}</div>
-                  <p class="t-desc">{t.desc}</p>
-                </div>
-                {!soon && <Icon name="arrow" size={17} class="t-arrow" />}
-              </>
-            );
-            return soon
-              ? <div class="t-row soon reveal" aria-disabled="true">{inner}</div>
-              : <a class="t-row reveal" href={"/" + t.slug + "/"}>{inner}</a>;
-          })}
+          {related.map((t) => (
+            <a class="t-row reveal" href={"/" + t.slug + "/"}>
+              <span class="t-ic"><Icon name={t.icon} size={20} tool /></span>
+              <div class="t-main">
+                <div class="t-name">{t.name}{t.isNew && <span class="lbl new">NEW</span>}</div>
+                <p class="t-desc">{t.desc}</p>
+              </div>
+              <Icon name="arrow" size={17} class="t-arrow" />
+            </a>
+          ))}
         </div>
         <a class="more-link" href="/#tools">すべてのツールを見る<Icon name="arrow" size={15} /></a>
       </section>

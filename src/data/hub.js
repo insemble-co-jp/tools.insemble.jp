@@ -1,6 +1,8 @@
 /* ===========================================================
    ツールハブ — カタログデータ
-   status: "live"(公開中) | "soon"(準備中)
+   status: "live"(公開中) | "soon"(作っている途中。画面のどこにも出さない)
+     ここはトップの JS にも丸ごと入るので、作る予定の候補は書かない。候補と、何を作るかの方針は ネタ帳.md へ
+     （2026-11-18 に「これから公開するツール」をやめ、そこに出していた26件を ネタ帳.md に移した）
    url: true = URLを入力して使う（URL提案の対象／サーバー経由で取得）
    それ以外は端末内（ブラウザ内）で処理する
    kw: 一覧の絞り込み・ハブの検索で拾うことば（画面には出さない）
@@ -15,30 +17,14 @@ const HUB = (function () {
     { id: "decide", label: "イベント・幹事", note: "席・順番・チームを、もめずに決める" },
     { id: "play", label: "遊び・教材", note: "写真や絵で、手作りのゲームを" },
     { id: "office", label: "仕事の段取り", note: "締切とスケジュールを、見える形にする" },
-    { id: "other", label: "その他", note: "文章の整形や、開発まわりの小さな変換" },
   ];
 
   /** @type {{ slug: string, name: string, desc: string, cat: string, icon: string, status: "live" | "soon", url?: boolean, hot?: number, uses?: number, added?: string, isNew?: boolean, kw?: string, rel?: string[], kind?: string }[]} */
   const TOOLS = [
-    { slug: "ogp", name: "OGPチェッカー", desc: "URLを貼ると、SNSでの見え方を採点してプレビュー。足りないタグは、直したコードをそのまま出せる。", cat: "web", icon: "share", status: "live", url: true, hot: 7, uses: 12480, added: "2026-06-12", kw: "sns シェア x twitter facebook line メタタグ seo ogp画像 ogp確認 公開前 リニューアル", rel: ["pdf-extract"] },
-    { slug: "noindex", name: "NoIndexチェッカー", desc: "URLを入れると、検索結果に出る設定かを確かめる。noindexの付け忘れや付けすぎを防げる。", cat: "web", icon: "shield", status: "soon", url: true, uses: 3160, added: "2026-09-18" },
-    { slug: "meta-tags", name: "メタタグ一括取得", desc: "URLを入れると、title・description・OGP・canonicalをまとめて一覧にする。", cat: "web", icon: "tags", status: "soon", url: true },
-    { slug: "canonical", name: "canonicalチェッカー", desc: "URLを入れると、正規URL（canonical）の指定を確かめる。同じ内容のページの重複に気づける。", cat: "web", icon: "link2", status: "soon", url: true },
-    { slug: "redirect", name: "リダイレクトチェッカー", desc: "URLを入れると、転送を何回経て最後のページに着くかを表示。各段階の応答コードも分かる。", cat: "web", icon: "route", status: "soon", url: true },
-    { slug: "robots", name: "robots.txtチェッカー", desc: "URLを入れると、robots.txtの許可・拒否を読み取る。意図とずれた設定がないか分かる。", cat: "web", icon: "robot", status: "soon", url: true },
-    { slug: "structured-data", name: "構造化データ検証", desc: "URLを入れると、構造化データの書き方を確かめる。検索結果で目立つ表示の対象になるかも分かる。", cat: "web", icon: "braces", status: "soon", url: true },
-    { slug: "heading", name: "見出し構造チェッカー", desc: "URLを入れると、h1〜h6の見出しを木の形で表示。順番の飛びや重複がその場で分かる。", cat: "web", icon: "list", status: "soon", url: true },
-    { slug: "og-image", name: "OG画像プレビュー", desc: "画像を入れると、各SNSでどう切り取られるかを一度に確かめられる。文字が切れるのを防げる。", cat: "web", icon: "crop", status: "soon" },
-    { slug: "share-link", name: "シェアリンク生成", desc: "URLと文言を入れると、X・LINE・Facebookでシェアするためのリンクを組み立てる。", cat: "web", icon: "send", status: "soon" },
-    { slug: "qr", name: "QRコード生成", desc: "URLを入れると、QRコードを作る。大きさ・余白・色を変えて、画像として書き出せる。", cat: "web", icon: "qr", status: "soon" },
+    { slug: "ogp", name: "OGPチェッカー", desc: "URLを貼ると、SNSでの見え方を採点してプレビュー。足りないタグは、直したコードをそのまま出せる。", cat: "web", icon: "share", status: "live", url: true, hot: 7, uses: 12480, added: "2026-06-12", kw: "sns シェア x twitter facebook line メタタグ seo ogp画像 ogp確認 公開前 リニューアル", rel: ["pdf-extract", "image-split", "schedule-excel"] },
 
     { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", cat: "file", icon: "pdf", status: "live", hot: 5, added: "2026-09-30", isNew: true, kw: "変換 pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["image-split", "schedule-excel", "ogp"] },
     { slug: "image-split", name: "画像ばらし屋", kind: "並べたものを1枚ずつ切り出し", desc: "並べて撮った写真を入れると、1つずつの画像に切り出す。番号付きの全体図と一緒にZIPで保存。", cat: "file", icon: "split", status: "live", hot: 8, added: "2026-10-26", isNew: true, kw: "画像 分割 切り出し 切り抜き トリミング 一括 まとめ撮り 商品写真 名刺 スキャン アイコン スプライト タイル フローリング 床材 グリッド split crop", rel: ["pdf-extract"] },
-    { slug: "resize", name: "画像リサイズ", desc: "画像を入れると、指定した大きさにまとめて変える。縦横の比率を保ったまま、複数枚を一度に。", cat: "file", icon: "image", status: "soon" },
-    { slug: "compress", name: "画像圧縮", desc: "画像を入れると、見た目を保ったままファイルを軽くする。ページの表示を速くしたいときに。", cat: "file", icon: "zip", status: "soon" },
-    { slug: "webp", name: "WebP変換", desc: "PNG・JPEGを入れると、WebPに変換する。WebPからPNG・JPEGに戻すこともできる。", cat: "file", icon: "swap", status: "soon" },
-    { slug: "favicon", name: "favicon生成", desc: "画像を1枚入れると、各サイズのfaviconとマニフェストをまとめて書き出す。", cat: "file", icon: "star", status: "soon" },
-    { slug: "base64", name: "Base64変換", desc: "文字やファイルを入れると、Base64に変換する。Base64から元に戻すこともできる。", cat: "file", icon: "code", status: "soon" },
 
     { slug: "seat", name: "席順メーカー", desc: "参加者の名前を入れると、卓ごとの座席表ができる。画像で保存したり、文字でコピーしたりして配れる。", cat: "decide", icon: "seat", status: "live", hot: 2, added: "2026-09-30", isNew: true, kw: "決める 席替え 席決め 飲み会 宴会 懇親会 忘年会 新年会 歓迎会 送別会 座席表 テーブル 幹事", rel: ["group", "roulette"] },
     { slug: "roulette", name: "イベント用ルーレット", desc: "名前を入れて回すと、1人をランダムに選ぶ。当たった人は自動で外れるので、順番決めや抽選に使える。", cat: "decide", icon: "wheel", status: "live", hot: 3, added: "2026-09-30", isNew: true, kw: "決める 抽選 くじ 順番 当番 発表者 司会 景品 ランダム ビンゴ 忘年会 役員決め", rel: ["seat", "group"] },
@@ -50,17 +36,6 @@ const HUB = (function () {
 
     { slug: "deadline", name: "あと何日？", kind: "締切カウントダウン＋ToDo", desc: "締切を入れると、残り時間を数え続ける。近づくと色で知らせ、画面の隅にも置いておける。", cat: "office", icon: "timer", status: "live", hot: 1, added: "2026-10-08", isNew: true, kw: "締切 期限 業務 段取り カウントダウン 残り日数 残り時間 タイマー todo やること リマインダー 付箋 notion excel アプリ pwa デスクトップ 常駐 ホーム画面", rel: ["schedule-excel"] },
 
-    { slug: "count", name: "文字数カウント", desc: "文章を入れると、文字数を数える。titleやdescriptionが目安に収まっているかも分かる。", cat: "other", icon: "hash", status: "soon" },
-    { slug: "zen-han", name: "全角・半角変換", desc: "文章を入れると、英数字・カナ・記号の全角と半角をまとめてそろえる。原稿の表記ゆれ直しに。", cat: "other", icon: "type", status: "soon" },
-    { slug: "whitespace", name: "改行・空白の整形", desc: "文章を入れると、余分な改行や続いた空白を取り除く。コピーしてきた原稿を整えたいときに。", cat: "other", icon: "eraser", status: "soon" },
-    { slug: "regex", name: "正規表現テスター", desc: "正規表現と文章を入れると、当てはまるところを色で示す。置き換えた結果もその場で見られる。", cat: "other", icon: "regex", status: "soon" },
-    { slug: "diff", name: "テキスト差分", desc: "2つの文章を入れると、並べて比べる。変わったところだけを色で示すので、修正の確認に。", cat: "other", icon: "diff", status: "soon" },
-    { slug: "json", name: "JSON整形・検証", desc: "JSONを入れると、読みやすく整える。書き方の誤りがあれば、その場所を示す。", cat: "other", icon: "braces", status: "soon" },
-    { slug: "urlencode", name: "URLエンコード", desc: "文字やURLを入れると、パーセントエンコードとの間で変換する。日本語URLの確認に。", cat: "other", icon: "link2", status: "soon" },
-    { slug: "hash", name: "ハッシュ生成", desc: "文字を入れると、MD5・SHA-1・SHA-256などのハッシュ値をすぐに作る。", cat: "other", icon: "key", status: "soon" },
-    { slug: "uuid", name: "UUID生成", desc: "個数と書式を選ぶと、v4のUUIDをまとめて作る。テスト用のIDを一度にそろえたいときに。", cat: "other", icon: "dice", status: "soon" },
-    { slug: "color", name: "カラーコード変換", desc: "色のコードを入れると、HEX・RGB・HSL・oklchに変換する。背景とのコントラスト比も分かる。", cat: "other", icon: "palette", status: "soon" },
-    { slug: "cron", name: "cron式チェッカー", desc: "cron式を入れると、意味を日本語で説明する。次に動く日時も一覧で分かる。", cat: "other", icon: "clock", status: "soon" },
   ];
 
   /* 学ぶ。soon: true のものはリンクしない（準備中の札だけ出す）。
@@ -98,7 +73,7 @@ const HUB = (function () {
     { q: "スマホでも使えますか？", a: "はい。スマートフォンやタブレットのブラウザでも、PCと同じように使えます。あと何日？は、ホーム画面に置いてアプリのように開くこともできます。" },
     { q: "仕事で使っても大丈夫ですか？", a: "はい、仕事でもお使いいただけます。結果はできるだけ正確になるようにつくっていますが、保証はしていません。社外に出す前や公開する前には、ご自身で最終確認をしてください。" },
     { q: "リンクや紹介は自由ですか？", a: "はい。どのページにも、連絡なしでリンクしていただけます。ブログや社内資料での紹介もご自由にどうぞ。" },
-    { q: "欲しいツールがないときは？", a: "公開を準備しているツールは、ツール一覧の下の「これから公開するツール」で見られます。そこにもないときは、ページ下の「制作のご相談」から、運営会社のお問い合わせフォームでご要望をお送りください。" },
+    { q: "欲しいツールがないときは？", a: "ページ下の「制作のご相談」から、運営会社のお問い合わせフォームでご要望をお送りください。いただいたご要望は、次につくるツールを決めるときの参考にします。" },
     { q: "自社用にカスタマイズしたツールはつくれますか？", a: "はい。運営会社のinsembleが、Web制作や業務に合わせた専用ツールの開発をお受けしています。ページ下の「制作のご相談」からお問い合わせください。" },
   ];
 
