@@ -77,6 +77,7 @@ const T = {
   pdf: '<path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8L14 3.5Z"/><polyline points="14 3.5 14 8 18.5 8"/><path d="M8.5 13.5h7M8.5 16.5h4.5"/>',
   seat: '<rect x="6.5" y="9" width="11" height="6" rx="1.6"/><circle cx="9" cy="5.5" r="1.4"/><circle cx="15" cy="5.5" r="1.4"/><circle cx="9" cy="18.5" r="1.4"/><circle cx="15" cy="18.5" r="1.4"/>',
   sheet: '<rect x="4" y="4.5" width="16" height="15" rx="2"/><line x1="4" y1="9.5" x2="20" y2="9.5"/><line x1="4" y1="14.5" x2="20" y2="14.5"/><line x1="10" y1="4.5" x2="10" y2="19.5"/>',
+  ledger: '<rect x="5" y="3.5" width="14" height="17" rx="1.8"/><rect x="7.5" y="6.5" width="5" height="4" rx="0.8"/><line x1="14.5" y1="7.5" x2="16.5" y2="7.5"/><line x1="14.5" y1="9.5" x2="16.5" y2="9.5"/><rect x="7.5" y="13" width="5" height="4" rx="0.8"/><line x1="14.5" y1="14" x2="16.5" y2="14"/><line x1="14.5" y1="16" x2="16.5" y2="16"/>',
   wheel: '<circle cx="12" cy="12.5" r="8"/><line x1="12" y1="4.5" x2="12" y2="20.5"/><line x1="5.1" y1="8.5" x2="18.9" y2="16.5"/><line x1="5.1" y1="16.5" x2="18.9" y2="8.5"/><path d="M10.5 2.5h3L12 5Z" fill="currentColor"/>',
   users: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M16 14.2a4.6 4.6 0 0 1 4.8 4.6"/>',
 };

@@ -1,0 +1,314 @@
+---
+/* 写真台帳メーカー：写真を入れると、撮影日時の順に並べて、A4の写真台帳（3枚 or 6枚）を印刷・PDFにする。
+   名前を付け直した写真のZIPと、一覧のCSVも出せる。動きは src/scripts/tools/photo-ledger.js
+   写真はブラウザの中だけで扱う（サーバーには送らない・保存しない）
+   一覧（品番・工程のCSV）との突き合わせは、次の版で足す予定（ネタ帳.md） */
+import ToolPage from "../../layouts/ToolPage.astro";
+import Icon from "../../components/Icon.astro";
+import type { SceneGroup } from "../../components/Scenes.astro";
+
+const FAQ = [
+  { q: "入れた写真はどこかに送られますか？", a: "送られません。写真の読み込み、並べ替え、台帳づくり、ZIPへのまとめは、すべてお使いのブラウザの中で行います。写真や入れた説明が運営者のサーバーに届くことはありません。途中の内容は、続きから使えるように、お使いのブラウザの中（IndexedDB という、ブラウザ内の保存場所）にだけ自動で保存します。「リセット」を押すと消えます。" },
+  { q: "途中で閉じても、続きから作れますか？", a: "作れます。入れた写真・場所・説明・並び順は、お使いのブラウザに自動で保存されるので、同じパソコン・スマホの同じブラウザで開き直すと、続きが出てきます。ほかのパソコンやブラウザには引き継げません。プライベートブラウズ（シークレットモード）や、ブラウザの保存できる量を超えたときは保存できないので、そのことを一覧の下にお知らせします。共用のパソコンでは、使い終わったら「リセット」を押してください。" },
+  { q: "写真は何枚まで入れられますか？", a: "1つの台帳に300枚まで入れられます。1枚の大きさは50MBまでです。それより多いときは、工区や日付ごとに台帳を分けて作ってください。" },
+  { q: "撮影日時はどうやって決まりますか？", a: "スマホやデジカメの写真（JPEG）には、撮影日時が写真の中に記録されています。それを読み取って、古い順に並べます。LINEやチャットで送られてきた写真、スクリーンショット、PNGには撮影日時が入っていないことが多く、そのときはファイルの日時を使い、一覧に「ファイルの日時」と表示します。日時は1枚ずつ直せます。" },
+  { q: "写真台帳はPDFやExcelで出せますか？", a: "PDFでは出せます。「印刷・PDF保存」を押すと印刷の画面が開くので、送り先（プリンター）で「PDFに保存」を選んでください（Safariでは、印刷の画面の「PDF」から保存します）。A4縦に、写真と説明を3枚ずつ、または写真を6枚ずつ並べます。写真入りのExcelでは、いまは出せません。番号・撮影日・場所・説明の一覧は、CSV（Excelで開ける表）で保存できます。工事の電子納品の決まった形式（フォルダ構成や管理ファイルのXML）、電子小黒板には対応していません。" },
+  { q: "説明をExcelからまとめて入れられますか？", a: "入れられます。「説明をまとめて入れる」を開き、Excelの「場所・部位」と「説明」の2列をコピーして貼り付けると、並んでいる写真の No.1 から順に入ります。1列だけなら、行の内容が説明に入ります。説明のない写真を飛ばしたいときは、その行を空けてください。" },
+  { q: "写真のファイル名をそろえられますか？", a: "そろえられます。「写真をZIPで保存」を押すと、元の写真の名前を「001_20261118_1階廊下.jpg」（番号_撮影日_場所）の形に付け直して、ZIPにまとめます。写真そのものは縮めず、元のまま入ります。番号と名前の対応は、ZIPの中の「一覧.csv」で確かめられます。写真の合計が500MBを超えるときは、500MBずつ複数のZIPに分けて保存します。" },
+  { q: "iPhoneの写真（HEIC）は使えますか？", a: "Safariなら使えます。ChromeなどほかのブラウザではHEICを開けないことがあるので、iPhoneの「設定」→「カメラ」→「フォーマット」で「互換性優先」を選んで撮るか、JPEGに書き出してから入れてください。" },
+];
+
+const SCENES: { intro: string; groups: SceneGroup[] } = {
+  intro: "写真台帳づくりは、写真を撮るより「どの写真が、いつ・どこか」を整理して、表に貼っていく作業のほうが時間を取ります。写真を入れるだけで撮影日時の順に並ぶので、あとは場所と説明を書き足せば、そのまま印刷できる台帳になります。",
+  groups: [
+    {
+      h: "工事・設備の現場",
+      items: [
+        ["工事が終わって、現場写真を写真台帳にまとめる作業が残っている", "写真をまとめて入れると撮影日時の順に並び、A4に3枚ずつ、撮影日・場所・説明つきで印刷できます。"],
+        ["Excelの写真台帳に、写真を1枚ずつ貼ってサイズを合わせている", "写真の大きさは台帳の枠に自動で合います。紙やPDFで出してよい台帳なら、Excelに1枚ずつ貼る手間がなくなります。"],
+        ["施工前・施工中・施工後の写真を、並べて見せたい", "撮影日時の順に並ぶので、同じ場所の写真が前後の順にそろいます。順番は↑↓で入れ替えられます。"],
+        ["職人さんからLINEで届いた写真の日付がばらばら", "撮影日時が消えている写真は「ファイルの日時」と表示されるので、どれを直せばいいかが分かります。"],
+      ],
+    },
+    {
+      h: "点検・管理・不動産",
+      items: [
+        ["設備の定期点検の報告書に、点検箇所の写真を添えたい", "場所・部位と説明をExcelからまとめて貼り付ければ、写真の順にそのまま入ります。"],
+        ["賃貸物件の入居前・退去時の状態を、写真で残しておきたい", "部屋ごとに場所を書いて台帳にすれば、あとで見比べやすい記録になります。"],
+        ["IMG_1234.jpg のままの写真を、あとから探せる名前にしたい", "「番号_撮影日_場所」の名前に付け直した写真を、ZIPでまとめて保存できます。"],
+        ["点検写真の一覧を、Excelで管理している台帳に足したい", "番号・撮影日・場所・説明・ファイル名を、CSV（Excelで開ける表）で保存できます。"],
+      ],
+    },
+    {
+      h: "店舗・イベント・社内の記録",
+      items: [
+        ["店舗の売り場づくりの写真を、本部への報告書にまとめたい", "1ページに6枚並べる形にすると、売り場全体を少ないページで見せられます。"],
+        ["展示会やイベントの設営・撤去の様子を、記録として残したい", "撮影日時の順に並ぶので、作業の流れがそのまま記録になります。"],
+        ["社内の改善活動の「before / after」を資料にしたい", "説明に「改善前」「改善後」と書いて並べれば、そのまま配れる資料になります。"],
+      ],
+    },
+  ],
+};
+
+/* 見本：開いた瞬間に、どんな台帳ができるかが分かるように（写真の代わりに色の枠） */
+const SAMPLE = [
+  { d: "2026/11/18 09:12", p: "屋上", n: "既設室外機 撤去前" },
+  { d: "2026/11/18 13:40", p: "屋上", n: "新設室外機 据付後" },
+  { d: "2026/11/19 10:05", p: "3階 機械室", n: "冷媒配管 保温施工後" },
+];
+---
+<ToolPage
+  slug="photo-ledger"
+  title="工事写真の写真台帳を無料で作成・印刷｜写真台帳メーカー｜insemble tools"
+  description="写真台帳メーカーは、写真を入れるだけで撮影日時の順に並べ、A4の写真台帳を印刷・PDFにできる無料ツールです。登録不要で、写真はサーバーに送信しません。途中で閉じても、続きから作れます。工事・設備の現場写真、点検や物件の記録に。場所・説明はExcelから貼り付けられ、名前を付け直した写真のZIPも作れます。"
+  ogTitle="写真台帳メーカー｜現場写真を、そのまま配れる台帳に"
+  h1="写真台帳メーカー｜工事写真・点検写真の台帳を作る無料ツール"
+  lead={["現場の写真を、", "そのまま配れる台帳", "に。"]}
+  sub={["写真を入れると、撮影日時の順に並びます。", "場所と説明を書き足せば、A4の写真台帳を印刷・PDFにできます。"]}
+  meta={[["check", "端末内で処理"], ["check", "写真は送信しません"]]}
+  steps={[
+    { t: "写真を入れる", d: "写真をまとめてドロップするか、タップして選びます（300枚まで）。撮影日時を読み取って、古い順に並べます。" },
+    { t: "場所と説明を書く", d: "1枚ずつ書くか、「説明をまとめて入れる」にExcelの2列（場所・部位／説明）を貼り付けます。順番は↑↓で入れ替えられます。" },
+    { t: "台帳にする", d: "「印刷・PDF保存」で、A4に3枚または6枚ずつ並べた写真台帳を刷れます。名前を付け直した写真のZIPや、一覧のCSVも保存できます。" },
+  ]}
+  scenes={SCENES}
+  faq={FAQ}
+  about={[
+    ["しくみ", "写真の中に記録された撮影日時を読み取り、古い順に並べます。撮影日時がない写真は、ファイルの日時を使います。台帳には、写真を縮小して並べます（ZIPには元の写真をそのまま入れます）。"],
+    ["保存", "入れた写真と説明は、運営者のサーバーには送りません。続きから使えるように、お使いのブラウザの中にだけ自動で保存し、「リセット」で消えます。"],
+    ["枚数", "1つの台帳に300枚まで、1枚50MBまで入れられます。"],
+  ]}
+  relatedSub="商品や名刺を並べて撮った写真を1枚ずつに切り出したいときは画像ばらし屋、工程を表にしたいときはスケジュール→Excelメーカーが使えます。"
+  guide={{
+    toc: "台帳づくりのコツ",
+    title: "写真台帳を早く、見やすく作るコツ",
+    items: [
+      {
+        h: "撮る前に、カメラの日時と撮る順番をそろえておく",
+        p: [
+          "写真台帳は、撮影日時の順に並べるのがいちばん早くまとまります。スマホやデジカメの日付と時刻が合っているかを、現場に入る前に確かめておくと、あとで並べ直す手間がなくなります。",
+          "同じ場所は「施工前 → 施工中 → 施工後」の順に続けて撮っておくと、台帳でも前後が並び、見る人が比べやすくなります。写真をLINEやチャットで集めると撮影日時が消えることがあるので、できれば元の写真をまとめて受け取ってください。",
+        ],
+      },
+      {
+        h: "写真台帳に書く項目と、説明の書き方",
+        p: [
+          "写真台帳は、撮った写真を、撮影日・撮影した場所・説明と一緒に1枚ずつ並べた記録です。工事の完了報告や設備の点検報告、物件の状態の記録などで、「いつ・どこを・どういう状態で撮ったか」を、写真を見ていない人にも伝えるために作ります。表題（工事名など）と作成者も入れておくと、あとから探しやすくなります。",
+          "説明には、どこを撮ったか（例：3階 機械室）と、何がどうなっているか（例：冷媒配管 保温施工後）を分けて書くと、あとから探しやすくなります。このツールでも「場所・部位」と「説明」の欄を分けています。",
+          "写真が多いときは、Excelで「場所・部位」「説明」の2列を写真の順に作ってから、「説明をまとめて入れる」に貼り付けるのが早道です。台帳は印刷する前に、プレビューで写真と説明がずれていないかを確かめてください。",
+        ],
+      },
+    ],
+  }}
+  cta={{
+    h: "電子納品や、自社の書式に合わせた写真台帳が必要な方へ",
+    p: [
+      "決まった書式の写真台帳を毎回作っている、電子納品のフォルダ分けまで自動にしたい、写真と工程表や点検表をつなげて管理したいなど、このツールでは足りないときは、業務に合わせた専用のWebツールの制作をご相談ください。",
+    ],
+    btns: [["写真管理・報告書のツール制作を相談する", "https://www.insemble.co.jp/contact"]],
+  }}
+  updated="2026-11-18"
+>
+  <div class="tp-panel">
+    <div class="tp-split">
+      <div class="tp-in">
+        <label class="fld">
+          <span class="fld-l">台帳の表題<span class="fld-hint">任意</span></span>
+          <input type="text" class="inp" id="pl-title" maxlength="100" placeholder="例：〇〇ビル 空調設備更新工事" autocomplete="off" />
+        </label>
+        <label class="fld">
+          <span class="fld-l">会社名・作成者<span class="fld-hint">任意</span></span>
+          <input type="text" class="inp" id="pl-by" maxlength="100" placeholder="例：〇〇設備 山田" autocomplete="off" />
+        </label>
+        <label class="drop sm" id="pl-drop">
+          <input type="file" id="pl-file" accept="image/*" multiple />
+          <span class="drop-ic"><Icon name="upload" size={22} /></span>
+          <span class="drop-t">写真をここにドロップ</span>
+          <span class="drop-d">または、タップして選ぶ（まとめて300枚まで）</span>
+        </label>
+        <!-- 読み込み・ZIP作成の進み具合（写真が0枚のときも見えるように、置き場のすぐ下に置く） -->
+        <div class="prog" id="pl-prog" hidden>
+          <span class="spin dark" aria-hidden="true"></span>
+          <span id="pl-prog-t" role="status"></span>
+          <span class="prog-bar"><i></i></span>
+        </div>
+        <div class="msgs" id="pl-msgs"></div>
+        <div class="sets">
+          <div class="set">
+            <span class="set-l">並べ方</span>
+            <div class="pick" data-pick="order" role="group" aria-label="並べ方">
+              <button type="button" data-v="date" aria-pressed="true">撮影日時の順</button>
+              <button type="button" data-v="name" aria-pressed="false">ファイル名の順</button>
+            </div>
+          </div>
+          <div class="set">
+            <span class="set-l">1ページの枚数</span>
+            <div class="pick" data-pick="per" role="group" aria-label="1ページの枚数">
+              <button type="button" data-v="3" aria-pressed="true">3枚（説明つき）</button>
+              <button type="button" data-v="6" aria-pressed="false">6枚</button>
+            </div>
+          </div>
+        </div>
+        <details class="more">
+          <summary><Icon name="chevron" size={16} />説明をまとめて入れる（任意）</summary>
+          <div class="more-body">
+            <label class="fld">
+              <span class="fld-l">1行に1枚ずつ、No.1 から順に</span>
+              <textarea class="ta pl-ta" id="pl-notes" spellcheck="false" placeholder={"屋上\t既設室外機 撤去前\n屋上\t新設室外機 据付後\n3階 機械室\t冷媒配管 保温施工後"}></textarea>
+              <span class="fld-hint">Excelの「場所・部位」「説明」の2列をコピーして貼り付けられます。1列だけなら説明に入ります。</span>
+            </label>
+            <button type="button" class="btn btn-ghost" id="pl-notes-apply"><Icon name="check" size={16} />写真に入れる</button>
+            <div class="msgs" id="pl-notes-msgs"></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="tp-out">
+        <!-- 見本：写真を入れる前から、できる台帳の形を見せる（入れると隠れる） -->
+        <section class="sample pl-sample" id="pl-sample" aria-label="見本の台帳" data-nosnippet>
+          <div class="sample-h">
+            <span class="sample-tag">見本</span>
+            <p class="sample-t">写真を入れると、こんな台帳になります</p>
+          </div>
+          <div class="sample-body pl-sv">
+            <div class="pl-sv-head"><b>〇〇ビル 空調設備更新工事</b><span>1 / 2</span></div>
+            {SAMPLE.map((s, i) => (
+              <div class="pl-sv-row">
+                <span class={`pl-sv-ph h${i}`} aria-hidden="true"><Icon name="image" size={22} /></span>
+                <dl>
+                  <div><dt>No.</dt><dd>{i + 1}</dd></div>
+                  <div><dt>撮影日</dt><dd>{s.d}</dd></div>
+                  <div><dt>場所・部位</dt><dd>{s.p}</dd></div>
+                  <div><dt>説明</dt><dd>{s.n}</dd></div>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div class="pl-work" id="pl-work" hidden>
+          <div class="out-head">
+            <div>
+              <p class="out-t" id="pl-out-t" role="status"></p>
+              <p class="out-d" id="pl-out-d"></p>
+            </div>
+            <div class="acts">
+              <button type="button" class="btn btn-primary" id="pl-print"><Icon name="print" size={17} />印刷・PDF保存</button>
+              <button type="button" class="btn btn-ghost" id="pl-zip"><Icon name="zip" size={16} />写真をZIPで保存</button>
+              <button type="button" class="btn btn-ghost" id="pl-csv"><Icon name="download" size={16} />一覧をCSVで保存</button>
+              <button type="button" class="btn btn-ghost" id="pl-reset"><Icon name="reset" size={15} />リセット</button>
+            </div>
+          </div>
+          <ol class="pl-list" id="pl-list" aria-label="台帳に並べる写真"></ol>
+          <!-- 一覧の下：説明を書き終えたところで、次にやること（写真を足す／台帳にする）が目に入るように -->
+          <div class="pl-next">
+            <label class="pl-add" id="pl-add-drop" tabindex="0" role="button" aria-label="写真を追加する（ファイルを選ぶか、ここにドロップ）">
+              <input type="file" id="pl-add-file" accept="image/*" multiple tabindex="-1" />
+              <Icon name="plus" size={18} />
+              <span><b>写真を追加</b><small>ここにドロップするか、押して選ぶ</small></span>
+            </label>
+            <button type="button" class="btn btn-primary btn-lg" id="pl-print2"><Icon name="print" size={18} />台帳を印刷・PDF保存</button>
+          </div>
+          <p class="pl-saved" id="pl-saved" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+  import "../../scripts/tools/photo-ledger.js";
+</script>
+</ToolPage>
+
+<style is:global>
+  .pl-ta{min-height:8em;font-size:16px}
+  .pl-sample{margin-top:0}
+  .pl-work{display:flex;flex-direction:column;gap:var(--g-sm)}
+  .pl-work[hidden],.pl-sample[hidden]{display:none}
+  .pl-work .out-head{margin-bottom:0}
+  #pl-prog{flex-wrap:wrap}
+  #pl-prog[hidden]{display:none}
+  #pl-prog .prog-bar{flex:1 1 100%}
+  .spin.dark{border-color:var(--line-2);border-top-color:var(--primary);flex-shrink:0}
+
+  /* 見本の台帳（写真の代わりに色の枠） */
+  .pl-sv{display:flex;flex-direction:column;gap:10px}
+  .pl-sv-head{display:flex;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:2px solid var(--ink);font-size:15px;color:var(--ink-2)}
+  .pl-sv-head b{font-family:var(--font-display);color:var(--ink)}
+  .pl-sv-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:var(--g-sm);padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .pl-sv-ph{aspect-ratio:4/3;border-radius:6px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line)}
+  .pl-sv-ph.h0{background:linear-gradient(160deg,oklch(0.93 0.02 220),oklch(0.86 0.03 230))}
+  .pl-sv-ph.h1{background:linear-gradient(160deg,oklch(0.94 0.03 200),oklch(0.87 0.04 190))}
+  .pl-sv-ph.h2{background:linear-gradient(160deg,oklch(0.94 0.02 90),oklch(0.88 0.03 70))}
+  .pl-sv dl,.pl-pr dl{display:flex;flex-direction:column}
+  .pl-sv dl div{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:8px;padding:4px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.5}
+  .pl-sv dt{font-weight:700;color:var(--muted)}
+  .pl-sv dd{color:var(--ink)}
+  @media(max-width:560px){.pl-sv-row{grid-template-columns:minmax(0,1fr)}}
+
+  /* 写真の一覧（1枚ずつ直せる） */
+  .pl-list{list-style:none;display:flex;flex-direction:column}
+  .pl-row{display:grid;grid-template-columns:132px minmax(0,1fr) auto;gap:var(--g-sm);align-items:start;padding:var(--g-sm) 0;border-top:1px solid var(--line)}
+  .pl-th{width:132px;height:99px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--paper)}
+  .pl-main{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .pl-top{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
+  .pl-n{font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--ink)}
+  .pl-date{min-width:0;max-width:100%}
+  .pl-date .inp{width:auto;max-width:100%;min-height:44px;padding-top:4px;padding-bottom:4px}
+  .pl-src{font-size:13px;font-weight:700;color:var(--warn-ink,var(--ink-2));background:var(--paper);border:1px solid var(--line-2);border-radius:99px;padding:2px 10px}
+  .pl-f{display:grid;grid-template-columns:6em minmax(0,1fr);align-items:center;gap:8px}
+  .pl-l{font-size:14px;font-weight:700;color:var(--ink-2)}
+  .pl-file{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+  .pl-ctl{display:flex;flex-direction:column;gap:6px}
+  /* 一覧の下：写真を追加（点線の置き場）＋台帳にする */
+  .pl-next{display:flex;gap:var(--g-sm);align-items:stretch;flex-wrap:wrap;padding-top:var(--g-sm);border-top:1px solid var(--line)}
+  .pl-add{position:relative;flex:1 1 240px;display:flex;align-items:center;gap:12px;min-height:56px;padding:10px var(--g-sm);border:2px dashed var(--line-2);border-radius:var(--r-sm);color:var(--primary-ink);background:#fff;cursor:pointer;transition:border-color .16s,background .16s}
+  .pl-add:hover,.pl-add.over,.pl-add:focus-visible{border-color:var(--primary);background:var(--primary-soft);outline:none}
+  .pl-add input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .pl-add span{display:flex;flex-direction:column;line-height:1.4}
+  .pl-add b{font-family:var(--font-display);font-size:16px;color:var(--ink)}
+  .pl-add small{font-size:13px;color:var(--muted)}
+  .pl-next .btn-lg{flex:0 1 auto;justify-content:center}
+  @media(max-width:560px){.pl-next .btn-lg{flex:1 1 100%}}
+  .pl-saved{font-size:13px;color:var(--muted);line-height:1.6}
+  .pl-saved:empty{display:none}
+  .pl-saved.ng{color:var(--ink-2)}
+  .pl-ctl .btn{min-width:44px;min-height:44px;justify-content:center;padding:0}
+  @media(max-width:640px){
+    .pl-row{grid-template-columns:96px minmax(0,1fr)}
+    .pl-th{width:96px;height:72px}
+    .pl-ctl{grid-column:1/-1;flex-direction:row;justify-content:flex-end}
+    .pl-f{grid-template-columns:minmax(0,1fr);gap:4px}
+    .pl-date,.pl-date .inp{width:100%}
+  }
+
+  /* 印刷：A4縦（余白 8mm → 194×280mm）。3枚＝写真の右に説明／6枚＝2列×3段で写真の下に説明 */
+  @media print{
+    /* 一般的な工事写真台帳の形：1件ずつ黒の実線で囲み、左（6枚は上）に 4:3 の写真枠、右（下）に記入欄。線は紙で消えない濃さにする */
+    .pl-pr{display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;color:#000}
+    .pl-pr-head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;padding-bottom:2mm;margin-bottom:4mm;border-bottom:0.6mm solid #000}
+    .pl-pr-head h1{font-size:15pt;font-weight:700;line-height:1.3}
+    .pl-pr-head p{font-size:9.5pt;white-space:nowrap}
+    .pl-pr-ph{display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+    .pl-pr-ph img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+    .pl-pr dl{display:flex;flex-direction:column;min-width:0}
+    .pl-pr dl div{display:grid;grid-template-columns:22mm minmax(0,1fr);border-bottom:0.25mm solid #000;font-size:10pt;line-height:1.5}
+    .pl-pr dl div:last-child{border-bottom:none}
+    .pl-pr dt{padding:1.5mm 2mm;border-right:0.25mm solid #000;background:#eef0f1;font-weight:700;white-space:nowrap}
+    .pl-pr dd{padding:1.5mm 2.5mm;overflow-wrap:anywhere}
+    .pl-pr-note{flex:1}
+    /* 3枚：1件 = 写真枠 112×84mm（4:3）＋記入欄。説明の欄は下の端まで伸ばし、手書きで書き足せるようにする */
+    .pl-pr3 .pl-pr-row{display:grid;grid-template-columns:112mm minmax(0,1fr);height:84mm;border:0.35mm solid #000;margin-bottom:4mm}
+    .pl-pr3 .pl-pr-ph{height:100%;padding:1.5mm;border-right:0.35mm solid #000}
+    /* 6枚：2列×3段。1件 = 写真枠＋その下に記入欄。説明が長いときは、写真の枠のほうが縮む（枠からはみ出さない） */
+    .pl-pr6 .pl-pr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3mm 5mm}
+    .pl-pr6 .pl-pr-cell{display:flex;flex-direction:column;border:0.35mm solid #000;height:85mm;overflow:hidden}
+    .pl-pr6 .pl-pr-ph{flex:1;min-height:0;padding:1mm;border-bottom:0.35mm solid #000}
+    .pl-pr6 dl{flex:none}
+    .pl-pr6 .pl-pr-note dd{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    /* 3枚：説明がとても長いときも、枠の中で切る */
+    .pl-pr3 .pl-pr-row{overflow:hidden}
+    .pl-pr3 dl{overflow:hidden}
+    .pl-pr6 dl div{grid-template-columns:17mm minmax(0,1fr);font-size:8pt;line-height:1.35}
+    .pl-pr6 dt,.pl-pr6 dd{padding:0.6mm 1.5mm}
+  }
+</style>

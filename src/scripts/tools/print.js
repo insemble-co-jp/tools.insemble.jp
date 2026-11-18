@@ -8,6 +8,8 @@ export async function printHTML(html) {
   if (!root) {
     root = document.createElement("div");
     root.id = "print-root";
+    // 刷る中身（名前・説明・写真）は入力そのものなので、Clarity の録画では伏せ字にする（ツール本体と同じ扱い）
+    root.setAttribute("data-clarity-mask", "True");
     document.body.appendChild(root);
   }
   root.innerHTML = html;

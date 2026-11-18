@@ -21,10 +21,11 @@ const HUB = (function () {
 
   /** @type {{ slug: string, name: string, desc: string, cat: string, icon: string, status: "live" | "soon", url?: boolean, hot?: number, uses?: number, added?: string, isNew?: boolean, kw?: string, rel?: string[], kind?: string }[]} */
   const TOOLS = [
-    { slug: "ogp", name: "OGPチェッカー", desc: "URLを貼ると、SNSでの見え方を採点してプレビュー。足りないタグは、直したコードをそのまま出せる。", cat: "web", icon: "share", status: "live", url: true, hot: 7, uses: 12480, added: "2026-06-12", kw: "sns シェア x twitter facebook line メタタグ seo ogp画像 ogp確認 公開前 リニューアル", rel: ["pdf-extract", "image-split", "schedule-excel"] },
+    { slug: "ogp", name: "OGPチェッカー", desc: "URLを貼ると、SNSでの見え方を採点してプレビュー。足りないタグは、直したコードをそのまま出せる。", cat: "web", icon: "share", status: "live", url: true, hot: 8, uses: 12480, added: "2026-06-12", kw: "sns シェア x twitter facebook line メタタグ seo ogp画像 ogp確認 公開前 リニューアル", rel: ["pdf-extract", "image-split", "schedule-excel"] },
 
-    { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", cat: "file", icon: "pdf", status: "live", hot: 5, added: "2026-09-30", isNew: true, kw: "変換 pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["image-split", "schedule-excel", "ogp"] },
-    { slug: "image-split", name: "画像ばらし屋", kind: "並べたものを1枚ずつ切り出し", desc: "並べて撮った写真を入れると、1つずつの画像に切り出す。番号付きの全体図と一緒にZIPで保存。", cat: "file", icon: "split", status: "live", hot: 8, added: "2026-10-26", isNew: true, kw: "画像 分割 切り出し 切り抜き トリミング 一括 まとめ撮り 商品写真 名刺 スキャン アイコン スプライト タイル フローリング 床材 グリッド split crop", rel: ["pdf-extract"] },
+    { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", cat: "file", icon: "pdf", status: "live", hot: 6, added: "2026-09-30", isNew: true, kw: "変換 pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["image-split", "schedule-excel", "ogp"] },
+    { slug: "image-split", name: "画像ばらし屋", kind: "並べたものを1枚ずつ切り出し", desc: "並べて撮った写真を入れると、1つずつの画像に切り出す。番号付きの全体図と一緒にZIPで保存。", cat: "file", icon: "split", status: "live", hot: 9, added: "2026-10-26", isNew: true, kw: "画像 分割 切り出し 切り抜き トリミング 一括 まとめ撮り 商品写真 名刺 スキャン アイコン スプライト タイル フローリング 床材 グリッド split crop", rel: ["photo-ledger", "pdf-extract"] },
+    { slug: "photo-ledger", name: "写真台帳メーカー", kind: "工事・点検写真の台帳", desc: "写真を入れると、撮影日時の順に並べてA4の写真台帳にする。印刷・PDF保存、名前をそろえたZIPも。", cat: "file", icon: "ledger", status: "live", hot: 5, added: "2026-11-18", isNew: true, kw: "写真台帳 工事写真 工事写真台帳 施工写真 現場写真 写真帳 点検 報告書 写真 整理 日付順 撮影日 exif 印刷 pdf excel リネーム ファイル名 一括 物件 原状回復 before after", rel: ["image-split", "schedule-excel", "pdf-extract"] },
 
     { slug: "seat", name: "席順メーカー", desc: "参加者の名前を入れると、卓ごとの座席表ができる。画像で保存したり、文字でコピーしたりして配れる。", cat: "decide", icon: "seat", status: "live", hot: 2, added: "2026-09-30", isNew: true, kw: "決める 席替え 席決め 飲み会 宴会 懇親会 忘年会 新年会 歓迎会 送別会 座席表 テーブル 幹事", rel: ["group", "roulette"] },
     { slug: "roulette", name: "イベント用ルーレット", desc: "名前を入れて回すと、1人をランダムに選ぶ。当たった人は自動で外れるので、順番決めや抽選に使える。", cat: "decide", icon: "wheel", status: "live", hot: 3, added: "2026-09-30", isNew: true, kw: "決める 抽選 くじ 順番 当番 発表者 司会 景品 ランダム ビンゴ 忘年会 役員決め", rel: ["seat", "group"] },
@@ -32,7 +33,7 @@ const HUB = (function () {
 
     { slug: "memory-game", name: "神経衰弱メーカー", kind: "写真でつくるカードゲーム", desc: "写真や絵を選ぶと、神経衰弱がその場で遊べる。印刷して、手作りのカードにもできる。", cat: "play", icon: "cards", status: "live", hot: 10, added: "2026-10-26", isNew: true, kw: "神経衰弱 メモリーゲーム 絵合わせ カード 手作り 自作 印刷 写真 子ども 知育 保育園 幼稚園 家族 おうち遊び トランプ", rel: ["roulette"] },
 
-    { slug: "schedule-excel", name: "スケジュール→Excelメーカー", desc: "予定を入れると、そのまま配れるExcelの予定表ができる。進行表や担当別の形でも書き出せる。", cat: "office", icon: "sheet", status: "live", hot: 6, added: "2026-09-30", isNew: true, kw: "エクセル excel 業務 段取り xlsx csv 予定表 進行表 タイムテーブル 工程表 スケジュール表 日程表 研修 撮影 イベント", rel: ["pdf-extract"] },
+    { slug: "schedule-excel", name: "スケジュール→Excelメーカー", desc: "予定を入れると、そのまま配れるExcelの予定表ができる。進行表や担当別の形でも書き出せる。", cat: "office", icon: "sheet", status: "live", hot: 7, added: "2026-09-30", isNew: true, kw: "エクセル excel 業務 段取り xlsx csv 予定表 進行表 タイムテーブル 工程表 スケジュール表 日程表 研修 撮影 イベント", rel: ["pdf-extract"] },
 
     { slug: "deadline", name: "あと何日？", kind: "締切カウントダウン＋ToDo", desc: "締切を入れると、残り時間を数え続ける。近づくと色で知らせ、画面の隅にも置いておける。", cat: "office", icon: "timer", status: "live", hot: 1, added: "2026-10-08", isNew: true, kw: "締切 期限 業務 段取り カウントダウン 残り日数 残り時間 タイマー todo やること リマインダー 付箋 notion excel アプリ pwa デスクトップ 常駐 ホーム画面", rel: ["schedule-excel"] },
 
@@ -54,6 +55,7 @@ const HUB = (function () {
 
   /* 更新情報（公開・改善・修正を日付つきで） */
   const CHANGELOG = [
+    { date: "2026/11/18", kind: "新規", text: "写真台帳メーカーを公開しました", tool: "photo-ledger" },
     { date: "2026/11/18", kind: "新規", text: "このサイトと運営者の紹介ページ「insemble tools について」を公開しました" },
     { date: "2026/11/12", kind: "改善", text: "あと何日？で、締切に「誰の」を付けて人ごとに絞り込めるようにし、CSVファイルも読み込めるようにしました", tool: "deadline" },
     { date: "2026/10/26", kind: "新規", text: "画像ばらし屋・神経衰弱メーカーを公開しました" },
@@ -67,9 +69,9 @@ const HUB = (function () {
 
   /* ハブのよくある質問（FAQPage 構造化データの対象） */
   const FAQ = [
-    { q: "insemble tools とは何ですか？", a: "北海道札幌市のWeb制作会社 株式会社インセンブルが運営する、無料のWebツール集です。席順・グループ分け・ルーレット・PDFや写真の取り出し・予定表のExcel化・締切のカウントダウン・OGPの確認など、毎回ちょっと面倒な作業を、登録なしでブラウザだけで片づけられます。くわしくは「insemble tools について」のページをご覧ください。" },
+    { q: "insemble tools とは何ですか？", a: "北海道札幌市のWeb制作会社 株式会社インセンブルが運営する、無料のWebツール集です。席順・グループ分け・ルーレット・PDFや写真の取り出し・写真台帳づくり・予定表のExcel化・締切のカウントダウン・OGPの確認など、毎回ちょっと面倒な作業を、登録なしでブラウザだけで片づけられます。くわしくは「insemble tools について」のページをご覧ください。" },
     { q: "本当に無料ですか？", a: "はい。すべてのツールを、登録なしで無料で使えます。ふつうに使う範囲では、回数の制限もありません。" },
-    { q: "入力したURLや文章、ファイルは保存されますか？", a: "運営者のサーバーには保存しません。PDFばらし屋や席順メーカーなど「端末内で処理」と書いてあるツールは、入れた名前やファイルを外部に送りません。OGPチェッカーのようにURLを調べるツールは、ページの情報を読み取るためにサーバーを経由しますが、入れたURLと結果は保存しません。あと何日？とスケジュール→Excelメーカーに入れた内容や、OGPチェッカーの「最近チェックしたURL」は、続きから使えるように、お使いのブラウザの中にだけ保存します。運営者には届きません。くわしくは、ページ下の「利用規約・プライバシーポリシー」をご覧ください。" },
+    { q: "入力したURLや文章、ファイルは保存されますか？", a: "運営者のサーバーには保存しません。PDFばらし屋や席順メーカーなど「端末内で処理」と書いてあるツールは、入れた名前やファイルを外部に送りません。OGPチェッカーのようにURLを調べるツールは、ページの情報を読み取るためにサーバーを経由しますが、入れたURLと結果は保存しません。あと何日？・スケジュール→Excelメーカー・写真台帳メーカーに入れた内容や、OGPチェッカーの「最近チェックしたURL」は、続きから使えるように、お使いのブラウザの中にだけ保存します。運営者には届きません。くわしくは、ページ下の「利用規約・プライバシーポリシー」をご覧ください。" },
     { q: "スマホでも使えますか？", a: "はい。スマートフォンやタブレットのブラウザでも、PCと同じように使えます。あと何日？は、ホーム画面に置いてアプリのように開くこともできます。" },
     { q: "仕事で使っても大丈夫ですか？", a: "はい、仕事でもお使いいただけます。結果はできるだけ正確になるようにつくっていますが、保証はしていません。社外に出す前や公開する前には、ご自身で最終確認をしてください。" },
     { q: "リンクや紹介は自由ですか？", a: "はい。どのページにも、連絡なしでリンクしていただけます。ブログや社内資料での紹介もご自由にどうぞ。" },
