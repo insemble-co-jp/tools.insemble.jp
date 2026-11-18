@@ -1,6 +1,6 @@
 ---
 /* ツールハブ（React なし）
-   いま使えるツールを最初に見せる / 学ぶ導線。動きは src/scripts/hub.js
+   キャッチ →「やりたいことから、選ぶ」（使用イメージの絵＋こんなときの一文）→ 学ぶ → FAQ → 運営。動きは src/scripts/hub.js
    準備中のツール（hub.js の status: "soon"）は出さない（2026-11-18 に「これから公開するツール」をやめた） */
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
@@ -8,6 +8,7 @@ import Footer from "../components/Footer.astro";
 import Corp from "../components/Corp.astro";
 import Icon from "../components/Icon.astro";
 import SectionHead from "../components/SectionHead.astro";
+import Peek from "../components/Peek.astro";
 import Faq from "../components/Faq.astro";
 import HUB from "../data/hub.js";
 import { ORG, PUBLISHER } from "../data/org.js";
@@ -23,10 +24,10 @@ const learn = HUB.LEARN.flatMap((l) => {
 });
 const learnCats = HUB.CATS.filter((c) => learn.some((l) => l.cat === c.id));
 const catLabel = (id: string) => HUB.CATS.find((c) => c.id === id)?.label ?? "";
-/* 処理のしかた（見本の「t-proc」）。URLを調べるツールだけサーバーを経由し、それ以外はブラウザの中で処理する */
-const procLabel = (t: (typeof HUB.TOOLS)[number]) => (t.url ? "URLを取得" : "端末内で処理");
+/* 「やりたいことから、選ぶ」のカテゴリ：公開中のツールがあるものだけ（CATS の順） */
+const liveCats = HUB.CATS.filter((c) => live.some((t) => t.cat === c.id));
 /* 検索で拾うことば（全角・半角をそろえて小文字に。hub.js も同じようにそろえて比べる） */
-const searchKey = (t: (typeof HUB.TOOLS)[number]) => [t.name, t.desc, t.slug, catLabel(t.cat), t.kw ?? ""].join(" ").normalize("NFKC").toLowerCase();
+const searchKey = (t: (typeof HUB.TOOLS)[number]) => [t.name, t.desc, t.when, t.slug, catLabel(t.cat), t.kw ?? ""].join(" ").normalize("NFKC").toLowerCase();
 
 const site = "https://tools.insemble.jp/";
 const jsonLd = [
@@ -52,7 +53,7 @@ const FOOT: { h: string; items: [string, string][] }[] = [
   <Header nav={NAV} />
 
   <main>
-    <!-- ===== ヒーロー（短く。すぐ下にツールを見せる） ===== -->
+    <!-- ===== ヒーロー（短く。ボタンで「やりたいことから、選ぶ」へ。URLはここで入力させない） ===== -->
     <section class="hub-hero">
       <div class="hero-glow"></div>
       <div class="hero-deco far" aria-hidden="true">
@@ -65,21 +66,10 @@ const FOOT: { h: string; items: [string, string][] }[] = [
         <i style="width:8px;height:8px;left:20%;top:64%;border:2px solid oklch(0.62 0.10 162);opacity:.35"></i>
       </div>
       <div class="wrap hub-hero-in">
-        <h1 class="hub-h1"><Icon name="sparkle" size={14} />無料で使える 仕事とWeb制作の便利ツール集</h1>
-        <p class="hub-title">毎回ちょっとの<span class="hl">面倒</span>を、<br class="sp-br" />ここで片づける。</p>
-        <p class="hub-sub">登録も広告もなく、ブラウザを開けばすぐに使えます。入れた内容を、運営者は保存しません。</p>
-
-        <!-- ツールを探す専用。入れたそばから下の一覧を絞り込む（URLを貼ったときは、OGPチェッカーへのリンクを出すだけで、勝手には動かさない） -->
-        <form class="hub-search" id="hub-search" role="search" data-clarity-mask="True">
-          <Icon name="search" size={19} style="color:var(--muted)" />
-          <input type="search" enterkeyhint="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="ツール名・やりたいこと（例：PDF、席順、締切）" aria-label="ツールを探す" aria-controls="live-list" />
-          <button type="button" class="hub-clear" id="hub-clear" aria-label="入力を消す" hidden><Icon name="x" size={14} /></button>
-        </form>
-        {urlTools[0] && (
-          <p class="hub-meta" id="hub-url" hidden data-clarity-mask="True">
-            <a class="hub-meta-url" id="hub-url-link" href={"/" + urlTools[0].slug + "/"} data-open={urlTools[0].slug}>このURLを{urlTools[0].name}で確認する<Icon name="arrow" size={14} /></a>
-          </p>
-        )}
+        <h1 class="hub-h1"><Icon name="sparkle" size={14} />無料で使える 仕事とWeb制作のツール集</h1>
+        <p class="hub-title">仕事の<span class="hl">ちょっと面倒</span>を、<br />ブラウザだけで片づける。</p>
+        <p class="hub-sub">写真台帳、席順、締切の管理、OGPの確認まで。{live.length}のツールを、登録なし・広告なしで使えます。写真や名前は送信せず、ブラウザの中で処理します。</p>
+        <a class="btn btn-primary hub-jump" href="#pick">やりたいことから選ぶ<Icon name="chevron" size={16} /></a>
       </div>
     </section>
 
@@ -87,36 +77,42 @@ const FOOT: { h: string; items: [string, string][] }[] = [
       <!-- お気に入り／最近使った は JS で出す -->
       <div id="my-slot"></div>
 
-      <!-- ===== いま使えるツール（ここが主役） ===== -->
-      <section class="feat" aria-labelledby="live-h">
-        <div class="feat-head">
-          <h2 class="feat-k" id="live-h">いま使えるツール</h2>
-          <span class="feat-n" id="live-n">{live.length}</span>
-          <span class="feat-note">☆でお気に入りに追加できます</span>
+      <!-- ===== やりたいことから、選ぶ（ここが主役。同じツールをほかの場所で2回並べない） ===== -->
+      <section class="show" id="pick" aria-labelledby="pick-h">
+        <div class="show-head">
+          <h2 class="show-t" id="pick-h">やりたいことから、選ぶ</h2>
+          <!-- ツールを探す専用。入れたそばから下の一覧を絞り込む（URLを貼ったときは、OGPチェッカーへのリンクを出すだけで、勝手には動かさない） -->
+          <search class="show-q">
+            <form id="hub-search" data-clarity-mask="True">
+              <Icon name="search" size={16} />
+              <input type="search" name="q" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="ツール名・やりたいことで探す" aria-label="ツールを探す" aria-controls="live-list" />
+              <button type="button" id="hub-clear" aria-label="入力を消す" hidden><Icon name="x" size={14} /></button>
+            </form>
+          </search>
         </div>
-        <div class="feat-rows" id="live-list">
+        {urlTools[0] && (
+          <p class="show-url" id="hub-url" hidden data-clarity-mask="True">
+            <a id="hub-url-link" href={"/" + urlTools[0].slug + "/"} data-open={urlTools[0].slug}>このURLを{urlTools[0].name}で確認する<Icon name="arrow" size={14} /></a>
+          </p>
+        )}
+        <div class="chips show-cats" role="group" aria-label="カテゴリで絞り込む">
+          <button type="button" class="chip on" data-cat="all" aria-pressed="true">すべて（{live.length}）</button>
+          {liveCats.map((c) => <button type="button" class="chip" data-cat={c.id} aria-pressed="false">{c.label}</button>)}
+        </div>
+        <!-- 絞り込んだ件数を読み上げる（画面には出さない。起動時は空のまま） -->
+        <p class="vh" id="hit-n" role="status"></p>
+        <p class="show-none" id="no-hit" hidden>「<span id="no-hit-q"></span>」に合うツールが見つかりませんでした。別のことばでも探してみてください。</p>
+        <div class="show-grid" id="live-list">
           {live.map((t) => (
-            <div class="f-row" data-search={searchKey(t)}>
-              <a class="f-link" href={"/" + t.slug + "/"} data-open={t.slug}>
-                <span class="f-top">
-                  <span class="f-ic"><Icon name={t.icon} size={22} tool /></span>
-                  <span class="f-meta">
-                    <span class="f-cat">{catLabel(t.cat)}</span>
-                    <span class="f-proc">{procLabel(t)}</span>
-                  </span>
-                </span>
-                <span class="f-name">{t.name}{t.isNew && <span class="lbl new">NEW</span>}</span>
-                <span class="f-desc">{t.desc}</span>
-                <span class="f-go">使ってみる<Icon name="arrow" size={15} /></span>
+            <div class="sc" id={"t-" + t.slug} data-search={searchKey(t)} data-cat={t.cat}>
+              <a class="sc-link" href={"/" + t.slug + "/"} data-open={t.slug}>
+                <div class="sc-peek" aria-hidden="true"><Peek slug={t.slug} /></div>
+                <span class="sc-name">{t.name}{t.isNew && <span class="lbl new">NEW</span>}<Icon name="arrow" size={15} /></span>
+                <span class="sc-when">{t.when}</span>
               </a>
-              <button type="button" class="fav" data-fav={t.slug} aria-pressed="false" aria-label={`${t.name}をお気に入りに追加`}><Icon name="star" size={17} tool /></button>
+              <button type="button" class="sc-fav" data-fav={t.slug} aria-pressed="false" aria-label={`${t.name}をお気に入りに追加`}><Icon name="star" size={16} tool /></button>
             </div>
           ))}
-        </div>
-        <div class="no-hit" id="no-hit" hidden>
-          <p class="no-hit-t">「<span id="no-hit-q"></span>」に合うツールが見つかりませんでした</p>
-          <p class="no-hit-d">「PDF」「席順」「締切」のように、短いことばにすると見つかりやすくなります。</p>
-          <div class="no-hit-a"><button type="button" class="btn btn-ghost" id="no-hit-clear">すべてのツールを表示</button></div>
         </div>
       </section>
     </div>

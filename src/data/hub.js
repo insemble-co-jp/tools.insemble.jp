@@ -9,33 +9,34 @@
    hot: ハブの「いま使えるツール」の並び順（小さいほど先。3つずつで1段）
    rel: ツールページの「関連ツール」で先に出す slug（一緒に使う場面が多い順。残りは同じカテゴリ → ほか）
    kind: 名前だけでは何の道具か分からないツールに、フッターなどで名前の横に添える一言（例：あと何日？（締切カウントダウン＋ToDo））
+   when: トップの「やりたいことから、選ぶ」で、使用イメージの絵の下に出す「こんなとき」の一文（〜したい、で終える。30字前後）
    =========================================================== */
 const HUB = (function () {
   const CATS = [
     { id: "web", label: "Web制作・SEO", note: "公開前の点検と、シェアされたときの見え方" },
-    { id: "file", label: "ファイル・画像", note: "PDFや写真から、使える素材を取り出す" },
+    { id: "file", label: "写真・ファイル", note: "PDFや写真を、使える形・配れる形にする" },
     { id: "decide", label: "イベント・幹事", note: "席・順番・チームを、もめずに決める" },
     { id: "play", label: "遊び・教材", note: "写真や絵で、手作りのゲームを" },
     { id: "office", label: "仕事の段取り", note: "締切とスケジュールを、見える形にする" },
   ];
 
-  /** @type {{ slug: string, name: string, desc: string, cat: string, icon: string, status: "live" | "soon", url?: boolean, hot?: number, uses?: number, added?: string, isNew?: boolean, kw?: string, rel?: string[], kind?: string }[]} */
+  /** @type {{ slug: string, name: string, desc: string, cat: string, icon: string, status: "live" | "soon", url?: boolean, hot?: number, uses?: number, added?: string, isNew?: boolean, kw?: string, rel?: string[], kind?: string, when: string }[]} */
   const TOOLS = [
-    { slug: "ogp", name: "OGPチェッカー", desc: "URLを貼ると、SNSでの見え方を採点してプレビュー。足りないタグは、直したコードをそのまま出せる。", cat: "web", icon: "share", status: "live", url: true, hot: 8, uses: 12480, added: "2026-06-12", kw: "sns シェア x twitter facebook line メタタグ seo ogp画像 ogp確認 公開前 リニューアル", rel: ["pdf-extract", "image-split", "schedule-excel"] },
+    { slug: "ogp", name: "OGPチェッカー", desc: "URLを貼ると、SNSでの見え方を採点してプレビュー。足りないタグは、直したコードをそのまま出せる。", when: "記事やお知らせをSNSで共有する前に、見え方をたしかめたい", cat: "web", icon: "share", status: "live", url: true, hot: 8, uses: 12480, added: "2026-06-12", kw: "sns シェア x twitter facebook line メタタグ seo ogp画像 ogp確認 公開前 リニューアル", rel: ["pdf-extract", "image-split", "schedule-excel"] },
 
-    { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", cat: "file", icon: "pdf", status: "live", hot: 6, added: "2026-09-30", isNew: true, kw: "変換 pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["image-split", "schedule-excel", "ogp"] },
-    { slug: "image-split", name: "画像ばらし屋", kind: "並べたものを1枚ずつ切り出し", desc: "並べて撮った写真を入れると、1つずつの画像に切り出す。番号付きの全体図と一緒にZIPで保存。", cat: "file", icon: "split", status: "live", hot: 9, added: "2026-10-26", isNew: true, kw: "画像 分割 切り出し 切り抜き トリミング 一括 まとめ撮り 商品写真 名刺 スキャン アイコン スプライト タイル フローリング 床材 グリッド split crop", rel: ["photo-ledger", "pdf-extract"] },
-    { slug: "photo-ledger", name: "写真台帳メーカー", kind: "工事・点検写真の台帳", desc: "写真を入れると、撮影日時の順に並べてA4の写真台帳にする。印刷・PDF保存、名前をそろえたZIPも。", cat: "file", icon: "ledger", status: "live", hot: 5, added: "2026-11-18", isNew: true, kw: "写真台帳 工事写真 工事写真台帳 施工写真 現場写真 写真帳 点検 報告書 写真 整理 日付順 撮影日 exif 印刷 pdf excel リネーム ファイル名 一括 物件 原状回復 before after", rel: ["image-split", "schedule-excel", "pdf-extract"] },
+    { slug: "pdf-extract", name: "PDFばらし屋", kind: "文字・画像の取り出し", desc: "PDFを入れると、文字・画像・ページ画像をまとめて取り出せる。全部入りのZIPも1クリックで保存。", when: "受け取ったPDFの文章や写真を、Webや資料に使い回したい", cat: "file", icon: "pdf", status: "live", hot: 6, added: "2026-09-30", isNew: true, kw: "変換 pdf テキスト 抽出 画像 変換 png jpeg zip 文字起こし カタログ パンフレット 素材", rel: ["image-split", "schedule-excel", "ogp"] },
+    { slug: "image-split", name: "画像ばらし屋", kind: "並べたものを1枚ずつ切り出し", desc: "並べて撮った写真を入れると、1つずつの画像に切り出す。番号付きの全体図と一緒にZIPで保存。", when: "並べて撮った商品やカードの写真を、1枚ずつの画像にしたい", cat: "file", icon: "split", status: "live", hot: 9, added: "2026-10-26", isNew: true, kw: "画像 分割 切り出し 切り抜き トリミング 一括 まとめ撮り 商品写真 名刺 スキャン アイコン スプライト タイル フローリング 床材 グリッド split crop", rel: ["photo-ledger", "pdf-extract"] },
+    { slug: "photo-ledger", name: "写真台帳メーカー", kind: "工事・点検写真の台帳", desc: "写真を入れると、撮影日時の順に並べてA4の写真台帳にする。印刷・PDF保存、名前をそろえたZIPも。", when: "工事や点検の現場写真を、撮影日・場所・説明つきの台帳にまとめたい", cat: "file", icon: "ledger", status: "live", hot: 5, added: "2026-11-18", isNew: true, kw: "写真台帳 工事写真 工事写真台帳 施工写真 現場写真 写真帳 点検 報告書 写真 整理 日付順 撮影日 exif 印刷 pdf excel リネーム ファイル名 一括 物件 原状回復 before after", rel: ["image-split", "schedule-excel", "pdf-extract"] },
 
-    { slug: "seat", name: "席順メーカー", desc: "参加者の名前を入れると、卓ごとの座席表ができる。画像で保存したり、文字でコピーしたりして配れる。", cat: "decide", icon: "seat", status: "live", hot: 2, added: "2026-09-30", isNew: true, kw: "決める 席替え 席決め 飲み会 宴会 懇親会 忘年会 新年会 歓迎会 送別会 座席表 テーブル 幹事", rel: ["group", "roulette"] },
-    { slug: "roulette", name: "イベント用ルーレット", desc: "名前を入れて回すと、1人をランダムに選ぶ。当たった人は自動で外れるので、順番決めや抽選に使える。", cat: "decide", icon: "wheel", status: "live", hot: 3, added: "2026-09-30", isNew: true, kw: "決める 抽選 くじ 順番 当番 発表者 司会 景品 ランダム ビンゴ 忘年会 役員決め", rel: ["seat", "group"] },
-    { slug: "group", name: "グループ分けメーカー", desc: "名前を入れると、人数をそろえてグループに分ける。リーダーの固定や、一緒にしない組み合わせも指定できる。", cat: "decide", icon: "users", status: "live", hot: 4, added: "2026-09-30", isNew: true, kw: "分ける 決める チーム分け 班分け 研修 ワークショップ 学校 ランダム 組み分け グループディスカッション gd 面接官 ファシリテーター リーダー 男女 グループワーク 新人研修", rel: ["seat", "roulette"] },
+    { slug: "seat", name: "席順メーカー", desc: "参加者の名前を入れると、卓ごとの座席表ができる。画像で保存したり、文字でコピーしたりして配れる。", when: "飲み会や懇親会の席順を、幹事がもめずに決めたい", cat: "decide", icon: "seat", status: "live", hot: 2, added: "2026-09-30", isNew: true, kw: "決める 席替え 席決め 飲み会 宴会 懇親会 忘年会 新年会 歓迎会 送別会 座席表 テーブル 幹事", rel: ["group", "roulette"] },
+    { slug: "roulette", name: "イベント用ルーレット", desc: "名前を入れて回すと、1人をランダムに選ぶ。当たった人は自動で外れるので、順番決めや抽選に使える。", when: "発表の順番やプレゼントの当選者を、その場で決めたい", cat: "decide", icon: "wheel", status: "live", hot: 3, added: "2026-09-30", isNew: true, kw: "決める 抽選 くじ 順番 当番 発表者 司会 景品 ランダム ビンゴ 忘年会 役員決め", rel: ["seat", "group"] },
+    { slug: "group", name: "グループ分けメーカー", desc: "名前を入れると、人数をそろえてグループに分ける。リーダーの固定や、一緒にしない組み合わせも指定できる。", when: "研修やイベントで、部署がばらけるようにチームを分けたい", cat: "decide", icon: "users", status: "live", hot: 4, added: "2026-09-30", isNew: true, kw: "分ける 決める チーム分け 班分け 研修 ワークショップ 学校 ランダム 組み分け グループディスカッション gd 面接官 ファシリテーター リーダー 男女 グループワーク 新人研修", rel: ["seat", "roulette"] },
 
-    { slug: "memory-game", name: "神経衰弱メーカー", kind: "写真でつくるカードゲーム", desc: "写真や絵を選ぶと、神経衰弱がその場で遊べる。印刷して、手作りのカードにもできる。", cat: "play", icon: "cards", status: "live", hot: 10, added: "2026-10-26", isNew: true, kw: "神経衰弱 メモリーゲーム 絵合わせ カード 手作り 自作 印刷 写真 子ども 知育 保育園 幼稚園 家族 おうち遊び トランプ", rel: ["roulette"] },
+    { slug: "memory-game", name: "神経衰弱メーカー", kind: "写真でつくるカードゲーム", desc: "写真や絵を選ぶと、神経衰弱がその場で遊べる。印刷して、手作りのカードにもできる。", when: "家族の写真で、子どもと遊べるゲームを作りたい", cat: "play", icon: "cards", status: "live", hot: 10, added: "2026-10-26", isNew: true, kw: "神経衰弱 メモリーゲーム 絵合わせ カード 手作り 自作 印刷 写真 子ども 知育 保育園 幼稚園 家族 おうち遊び トランプ", rel: ["roulette"] },
 
-    { slug: "schedule-excel", name: "スケジュール→Excelメーカー", desc: "予定を入れると、そのまま配れるExcelの予定表ができる。進行表や担当別の形でも書き出せる。", cat: "office", icon: "sheet", status: "live", hot: 7, added: "2026-09-30", isNew: true, kw: "エクセル excel 業務 段取り xlsx csv 予定表 進行表 タイムテーブル 工程表 スケジュール表 日程表 研修 撮影 イベント", rel: ["pdf-extract"] },
+    { slug: "schedule-excel", name: "スケジュール→Excelメーカー", desc: "予定を入れると、そのまま配れるExcelの予定表ができる。進行表や担当別の形でも書き出せる。", when: "制作や開発の進行表を、配れるExcelでさっと作りたい", cat: "office", icon: "sheet", status: "live", hot: 7, added: "2026-09-30", isNew: true, kw: "エクセル excel 業務 段取り xlsx csv 予定表 進行表 タイムテーブル 工程表 スケジュール表 日程表 研修 撮影 イベント", rel: ["pdf-extract"] },
 
-    { slug: "deadline", name: "あと何日？", kind: "締切カウントダウン＋ToDo", desc: "締切を入れると、残り時間を数え続ける。近づくと色で知らせ、画面の隅にも置いておける。", cat: "office", icon: "timer", status: "live", hot: 1, added: "2026-10-08", isNew: true, kw: "締切 期限 業務 段取り カウントダウン 残り日数 残り時間 タイマー todo やること リマインダー 付箋 notion excel アプリ pwa デスクトップ 常駐 ホーム画面", rel: ["schedule-excel"] },
+    { slug: "deadline", name: "あと何日？", kind: "締切カウントダウン＋ToDo", desc: "締切を入れると、残り時間を数え続ける。近づくと色で知らせ、画面の隅にも置いておける。", when: "いくつもの締切を、見落とさないように目の前に置いておきたい", cat: "office", icon: "timer", status: "live", hot: 1, added: "2026-10-08", isNew: true, kw: "締切 期限 業務 段取り カウントダウン 残り日数 残り時間 タイマー todo やること リマインダー 付箋 notion excel アプリ pwa デスクトップ 常駐 ホーム画面", rel: ["schedule-excel"] },
 
   ];
 

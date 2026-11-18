@@ -1,6 +1,6 @@
 /* ===========================================================
    ツールハブ（React なし）
-   ツールを探す（入力で絞り込み）/ お気に入り・最近使った（このブラウザの中だけ）
+   やりたいことから、選ぶ（検索欄とカテゴリで絞り込み）/ お気に入り・最近使った（このブラウザの中だけ）
    =========================================================== */
 import { goTo } from "./site.js";
 import "./faq.js";
@@ -57,7 +57,7 @@ $$("[data-fav]").forEach((b) => b.addEventListener("click", () => {
   drawMy();
 }));
 
-/* ---------- ヒーローの検索（ツールを探す専用。入れたそばから一覧を絞り込む） ---------- */
+/* ---------- やりたいことから、選ぶ：検索欄（ツールを探す専用。入れたそばから絞り込む）＋カテゴリ ---------- */
 const form = $("#hub-search");
 const input = $("input", form);
 const clearBtn = $("#hub-clear");
@@ -65,6 +65,8 @@ const urlHint = $("#hub-url");
 const urlLink = $("#hub-url-link");
 const looksUrl = (u) => /^https?:\/\//i.test(u) || /^[\w-]+(\.[\w-]+)+(\/|$)/.test(u);
 const urlTool = H.TOOLS.find((t) => t.url && t.status === "live");
+const catBtns = $$(".show-cats [data-cat]");
+let cat = "all";
 
 function onInput() {
   const v = input.value.trim();
@@ -75,10 +77,16 @@ function onInput() {
     urlHint.hidden = !isUrl || !urlTool;
     if (isUrl && urlTool) urlLink.href = toolUrl(urlTool, v);
   }
-  filter(isUrl ? "" : input.value);
+  filter();
 }
 input.addEventListener("input", onInput);
 clearBtn.addEventListener("click", () => { input.value = ""; onInput(); input.focus(); });
+
+catBtns.forEach((b) => b.addEventListener("click", () => {
+  cat = b.dataset.cat;
+  catBtns.forEach((x) => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+  filter();
+}));
 
 // キーボード：「/」か ⌘K / Ctrl+K で検索欄へ。検索欄で Esc を押すと入力を消す（DESIGN.md §9）
 document.addEventListener("keydown", (e) => {
@@ -87,8 +95,9 @@ document.addEventListener("keydown", (e) => {
   const cmdK = (e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k";
   if (cmdK || (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey)) {
     e.preventDefault();
-    input.focus();
+    input.focus({ preventScroll: true });
     input.select();
+    goTo("#pick");
   }
 });
 input.addEventListener("keydown", (e) => {
@@ -98,32 +107,33 @@ input.addEventListener("keydown", (e) => {
   onInput();
 });
 
-// Enter：探した結果の場所へ送るだけ（スマホではキーボードを閉じる）
+// Enter：スマホのキーボードを閉じるだけ（一覧は入力のたびに絞り込み済み）
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  const v = input.value.trim();
-  if (!v || looksUrl(v)) return;
-  const live = filter(v);
   input.blur();
-  if (live) goTo("#tools");
 });
 
-/* ---------- 一覧の絞り込み（いま使えるツール） ---------- */
-const liveRows = $$("#live-list [data-search]");
+/* ---------- 一覧の絞り込み ---------- */
+const cards = $$("#live-list [data-search]");
 
-function filter(raw) {
-  // 全角・半角をそろえ、空白で区切ったことばがすべて含まれるものを出す（例：「ＰＤＦ 画像」）
-  const terms = String(raw || "").trim().normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
-  const hit = (r) => terms.every((t) => r.dataset.search.includes(t));
-  let live = 0;
-  liveRows.forEach((r) => { const ok = hit(r); r.hidden = !ok; if (ok) live++; });
-  $("#live-n").textContent = live;
+function filter() {
+  const raw = input.value.trim();
+  // URLのときは絞り込まない。全角・半角をそろえ、空白で区切ったことばがすべて含まれるものを出す（例：「ＰＤＦ 画像」）
+  const terms = looksUrl(raw) ? [] : raw.normalize("NFKC").toLowerCase().split(/\s+/).filter(Boolean);
+  let n = 0;
+  cards.forEach((c) => {
+    const ok = (cat === "all" || c.dataset.cat === cat) && terms.every((t) => c.dataset.search.includes(t));
+    c.hidden = !ok;
+    if (ok) n++;
+  });
   // 1つも当たらないときは「見つかりませんでした」（文言は index.astro の #no-hit に書いたまま使う）
-  $("#no-hit").hidden = !terms.length || live > 0;
+  $("#no-hit").hidden = n > 0;
   $("#no-hit-q").textContent = raw;
-  return live;
+  // 件数が変わったときだけ読み上げる（1文字ごとに同じ件数をくり返さない）
+  const msg = n ? `${n}件のツール` : "合うツールはありません";
+  if (hitN.textContent !== msg) hitN.textContent = msg;
 }
-$("#no-hit-clear").addEventListener("click", () => { input.value = ""; onInput(); input.focus(); });
+const hitN = $("#hit-n");
 
 /* ---------- 起動 ---------- */
 drawFavs();

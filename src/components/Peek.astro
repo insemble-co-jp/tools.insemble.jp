@@ -1,0 +1,46 @@
+---
+/* トップの「やりたいことから、選ぶ」で、ツールごとに「できること」を小さな絵で見せる
+   画像ファイルは使わず、CSS（hub.css の .pk-*）で描く。飾りなので読み上げない（呼び出し側で aria-hidden）
+   ツールを足したら、ここに1つ足す（無いツールは絵の枠だけになる） */
+interface Props { slug: string }
+const { slug } = Astro.props;
+const GANTT = [[0, 30], [18, 40], [45, 35], [70, 22]];
+const SEAT = [["田中", "佐藤", "鈴木"], ["高橋", "伊藤", "渡辺"]];
+const GROUPS = [["★田中", "鈴木", "山田"], ["★佐藤", "伊藤", "小林"], ["★高橋", "渡辺", "加藤"]];
+const CARDS = ["🐶", "", "", "🐶", "", "🐱", "", ""];
+---
+{slug === "ogp" && (
+  <div class="pk pk-ogp"><span class="pk-score">90</span><div class="pk-card"><i class="pk-img"></i><b></b><s></s></div></div>
+)}
+{slug === "pdf-extract" && (
+  <div class="pk pk-pdf"><div class="pk-doc">PDF</div><span class="pk-arr">→</span><div class="pk-outs"><i></i><i></i><i class="t"></i><i class="t"></i></div></div>
+)}
+{slug === "image-split" && (
+  <div class="pk pk-split">{Array.from({ length: 6 }, () => <i></i>)}</div>
+)}
+{slug === "deadline" && (
+  <div class="pk pk-dl"><div class="pk-dc over"><span>期限オーバー</span></div><div class="pk-dc"><span>あと <b>2</b>日 <b>11</b>時間</span></div></div>
+)}
+{slug === "schedule-excel" && (
+  <div class="pk pk-gantt">{GANTT.map(([l, w]) => <div><i style={`margin-left:${l}%;width:${w}%`}></i></div>)}</div>
+)}
+{slug === "seat" && (
+  <div class="pk pk-seat">
+    <div class="r">{SEAT[0].map((n) => <span>{n}</span>)}</div>
+    <i></i>
+    <div class="r">{SEAT[1].map((n) => <span>{n}</span>)}</div>
+  </div>
+)}
+{slug === "roulette" && <div class="pk pk-rl"><i></i><b></b></div>}
+{slug === "group" && (
+  <div class="pk pk-grp">{GROUPS.map((g, i) => <div><em>{"ABC"[i]}</em>{g.map((n) => <span>{n}</span>)}</div>)}</div>
+)}
+{slug === "photo-ledger" && (
+  <div class="pk pk-pl">
+    <div class="pl-h"><b></b><s>1 / 2</s></div>
+    {[0, 1, 2].map(() => <div class="pl-r"><i></i><span><b></b><s></s><s></s></span></div>)}
+  </div>
+)}
+{slug === "memory-game" && (
+  <div class="pk pk-mg">{CARDS.map((e) => <i class={e ? "up" : undefined}>{e}</i>)}</div>
+)}
