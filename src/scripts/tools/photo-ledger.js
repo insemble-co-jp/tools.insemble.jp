@@ -64,7 +64,10 @@ const saving = (p) => { if (storeOk) p.then(savedNote, storeFailed); };
 function savedNote() {
   if (!storeOk) return;
   const d = new Date();
-  el.saved.textContent = `この端末のブラウザにだけ自動で保存しています（${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} 保存）。次に開いたときも続きから使えます。「リセット」で消えます。`;
+  // 元の写真もそのまま保存しているので、使っている大きさを数字で見せる（容量を使っていることに気づけるように）
+  const mb = items.reduce((s, it) => s + (it.size || 0), 0) / 1048576;
+  const size = mb >= 1024 ? `約${(mb / 1024).toFixed(1)}GB` : `約${Math.max(1, Math.round(mb))}MB`;
+  el.saved.textContent = `写真${items.length}枚・${size}を、この端末のブラウザにだけ自動で保存しています（${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")} 保存）。次に開いたときも続きから使えます。使い終わったら「リセット」で消してください。`;
 }
 let stateTimer = 0;
 function saveState() {
