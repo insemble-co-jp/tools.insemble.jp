@@ -2,7 +2,7 @@
 /* 端末内で動くツールページの共通の枠（PDFばらし屋・席順メーカーなど）
    OGPチェッカーと同じ2層：上＝道具ゾーン（paper。説明は足さない）／下＝読みもの（白）
    ツール本体は <slot />。読みもの：使い方 → こんなときに使えます（scenes）→ 実務のヒント（guide）→ <slot name="guide" />
-   → テーマ別の相談（cta）→ よくある質問 → 関連ツール → このツールについて → 運営（cta があるとき）／運営会社（ないとき）
+   → テーマ別の相談（cta）→ よくある質問 → 関連ツール → このツールについて（＋このツールを紹介する）→ 運営（cta があるとき）／運営会社（ないとき）
    見た目のもとは 2026-11 のデザイン見本（tools-base.css・tools-shell.js） */
 import Base from "./Base.astro";
 import Header from "../components/Header.astro";
@@ -11,6 +11,7 @@ import Corp from "../components/Corp.astro";
 import Icon from "../components/Icon.astro";
 import Faq from "../components/Faq.astro";
 import Scenes, { type SceneGroup } from "../components/Scenes.astro";
+import Share from "../components/Share.astro";
 import HUB from "../data/hub.js";
 import { ORG, PUBLISHER } from "../data/org.js";
 import "../styles/ogp.css";
@@ -48,11 +49,13 @@ interface Props {
 }
 const { slug, title, description, ogTitle, h1, lead, sub, meta, steps, scenes, faq, about, guide, cta, corp, relatedSub, appCategory = "UtilitiesApplication", updated, app, fonts } = Astro.props;
 
-/* 概要の最後には、どのツールでも同じ「料金」「免責」を付ける（書き方は規約 /terms/ にそろえる）
+/* 概要の最後には、どのツールでも同じ「料金」「対応環境」「免責」を付ける（書き方は規約 /terms/ にそろえる）
+   AIや検索に引用されやすいよう、無料・登録不要・保存の扱い・人数の上限などは、ぼかさず事実として書く
    3つ目を true にした行は、最後に「くわしくは利用規約（リンク）をご覧ください。」を添える */
 const aboutRows: [string, string, boolean?][] = [
   ...about,
-  ["料金", "無料で、登録も要りません。PC・スマホのどちらでも使えます。"],
+  ["料金", "無料です。会員登録もインストールも要りません。"],
+  ["対応環境", "PC・スマホ・タブレットのブラウザ（Chrome・Edge・Safari・Firefox の新しい版）で使えます。"],
   ["免責", "結果の正確さは保証しません。このツールを使って生じた損害について、運営者に故意または重大な過失がある場合を除き、責任を負いません。", true],
 ];
 
@@ -65,7 +68,7 @@ const live = HUB.TOOLS.filter((t) => t.status === "live");
 
 const jsonLd = [
   ORG,
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name, description, applicationCategory: appCategory, operatingSystem: "Web", inLanguage: "ja", url, dateModified: updated, offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" }, publisher: PUBLISHER },
+  { "@context": "https://schema.org", "@type": "SoftwareApplication", name, description, applicationCategory: appCategory, operatingSystem: "Web", inLanguage: "ja", url, dateModified: updated, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Chrome・Edge・Safari・Firefox の新しい版", offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" }, publisher: PUBLISHER },
   { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["ホーム", new URL("/", Astro.site).href], [name, url]].map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, item: u })) },
   { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
 ];
@@ -206,6 +209,7 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
         <dl class="tp-about">
           {aboutRows.map(([k, v, terms]) => <div><dt>{k}</dt><dd>{v}{terms && <>くわしくは<a href="/terms/">利用規約</a>をご覧ください。</>}</dd></div>)}
         </dl>
+        <Share url={url} text={`${name}｜${tool?.desc ?? description}`} />
       </section>
 
       {cta && (
@@ -214,6 +218,7 @@ const related = live.filter((t) => t.slug !== slug).sort((a, b) => rank(a) - ran
             <span class="tp-op-k">運営</span>
             <b>insemble</b>
             <span class="tp-op-d">インセンブル｜北海道 札幌市のWeb制作会社です。サイト制作と、業務に合わせたWebツールの開発をしています。</span>
+            <a href="/about/">insemble tools について<Icon name="arrow" size={14} /></a>
             <a href="https://www.insemble.co.jp/" target="_blank" rel="noopener">会社サイト<Icon name="arrow" size={14} /></a>
           </p>
         </section>

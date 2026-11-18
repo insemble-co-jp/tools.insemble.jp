@@ -1,0 +1,43 @@
+---
+/* このツールを紹介する：X・LINE で送るリンクと、URLのコピー
+   使った人の投稿（第三者のクチコミ）の入口。外部のスクリプトは読み込まず、ふつうのリンクだけで送る
+   （押したときに X・LINE へ渡るのは、このページのURLと紹介文だけ。入力した名前やファイルは渡らない） */
+import Icon from "./Icon.astro";
+
+interface Props {
+  url: string;   // このページの絶対URL
+  text: string;  // 紹介文（例：席順メーカー｜名前を入れるだけで座席表ができる無料ツール）
+}
+const { url, text } = Astro.props;
+const enc = encodeURIComponent;
+const LINKS: [label: string, glyph: string, color: string, href: string][] = [
+  ["Xでポスト", "𝕏", "#0f1419", `https://x.com/intent/post?text=${enc(text)}&url=${enc(url)}`],
+  ["LINEで送る", "L", "#06c755", `https://social-plugins.line.me/lineit/share?url=${enc(url)}&text=${enc(text)}`],
+];
+---
+<div class="shr">
+  <p class="shr-t">このツールを紹介する</p>
+  <div class="shr-a">
+    {LINKS.map(([label, glyph, color, href]) => (
+      <a class="shr-b" href={href} target="_blank" rel="noopener noreferrer"><span class="shr-g" aria-hidden="true" style={`background:${color}`}>{glyph}</span>{label}</a>
+    ))}
+    <button type="button" class="shr-b" data-copy={url} data-label="リンクをコピー" data-share-copy><Icon name="copy" size={15} />リンクをコピー</button>
+  </div>
+</div>
+
+<script>
+  import { onCopy } from "../scripts/copy.js";
+  document.querySelectorAll<HTMLButtonElement>("[data-share-copy]").forEach((b) => b.addEventListener("click", () => onCopy(b)));
+</script>
+
+<style>
+  .shr{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-xs) var(--g-sm);margin-top:var(--g-md);max-width:var(--col-read)}
+  .shr-t{font-size:15px;font-weight:700;color:var(--ink)}
+  .shr-a{display:flex;flex-wrap:wrap;gap:var(--g-xs)}
+  .shr-b{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 16px 6px 8px;font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line-2);border-radius:99px;text-decoration:none;cursor:pointer;transition:border-color .16s,color .16s}
+  .shr-b:hover{border-color:var(--primary);color:var(--primary-ink)}
+  .shr-b:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  button.shr-b{padding-left:14px}
+  .shr-g{width:28px;height:28px;border-radius:99px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;flex-shrink:0}
+  @media(max-width:560px){.shr-a{width:100%}.shr-b{flex:1;justify-content:center}}
+</style>

@@ -396,3 +396,7 @@ code{font-family:var(--font-mono)}
 .hub-search input{padding:15px 0}
 .hub-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
 .hub-meta[hidden]{display:none}
+
+/* 「〜を見る」リンク（ogp.css の .more-link と同じ。トップは hub.css だけを読むので、こちらにも置く） */
+.more-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-top:var(--g-md);font-size:16px;font-weight:700;color:var(--primary-ink);text-decoration:none}
+.more-link svg{transition:.18s}.more-link:hover svg{transform:translateX(4px)}

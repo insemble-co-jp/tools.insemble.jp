@@ -35,7 +35,7 @@ const NAV: [string, string][] = [["#tools", "ツール"], ["#learn", "学ぶ"], 
 const FOOT: { h: string; items: [string, string][] }[] = [
   { h: "ツール", items: [...live.map((t) => [HUB.label(t), "/" + t.slug + "/"] as [string, string]), ["ツール一覧", "#tools"]] },
   { h: "学ぶ", items: [...HUB.LEARN.filter((l) => !l.soon).map((l) => [l.title, l.href] as [string, string]), ...(HUB.SHOW_UPDATES ? [["更新情報", "#updates"] as [string, string]] : [])] },
-  { h: "サポート", items: [["よくある質問", "#faq"]] },
+  { h: "サポート", items: [["よくある質問", "#faq"], ["insemble tools について", "/about/"]] },
 ];
 ---
 <Base
@@ -61,8 +61,8 @@ const FOOT: { h: string; items: [string, string][] }[] = [
       </div>
       <div class="wrap hub-hero-in">
         <h1 class="hub-h1"><Icon name="sparkle" size={14} />無料で使える 仕事とWeb制作の便利ツール集</h1>
-        <p class="hub-title">毎回ちょっと<span class="hl">面倒</span>を、<br class="sp-br" />ここで片づける。</p>
-        <p class="hub-sub">登録も広告もなく、ブラウザを開けばすぐに使えます。</p>
+        <p class="hub-title">毎回ちょっとの<span class="hl">面倒</span>を、<br class="sp-br" />ここで片づける。</p>
+        <p class="hub-sub">登録も広告もなく、ブラウザを開けばすぐに使えます。入れた内容を、運営者は保存しません。</p>
 
         <!-- ツールを探す専用。入れたそばから下の一覧を絞り込む（URLを貼ったときは、OGPチェッカーへのリンクを出すだけで、勝手には動かさない） -->
         <form class="hub-search" id="hub-search" role="search" data-clarity-mask="True">
@@ -208,6 +208,7 @@ const FOOT: { h: string; items: [string, string][] }[] = [
           </div>
         ))}
       </div>
+      <a class="more-link" href="/about/">insemble tools について（運営者・ツールの特徴・更新履歴）<Icon name="arrow" size={15} /></a>
     </section>
 
     <!-- ===== よくある質問 ===== -->

@@ -10,6 +10,7 @@ import SectionHead from "../../components/SectionHead.astro";
 import Glossary from "../../components/ogp/Glossary.astro";
 import Faq from "../../components/Faq.astro";
 import Scenes from "../../components/Scenes.astro";
+import Share from "../../components/Share.astro";
 import D from "../../data/ogp.js";
 import HUB from "../../data/hub.js";
 import { ORG, PUBLISHER } from "../../data/org.js";
@@ -17,10 +18,10 @@ import "../../styles/ogp.css";
 import "../../styles/ogp-page.css";
 
 const url = "https://tools.insemble.jp/ogp/";
-const description = "OGPチェッカーは、URLを入れるだけで、X・Facebook・LINE・Slack・Discord・Teamsでのシェア表示を確認できる無料ツールです。サイトの公開やリニューアルのあとに、OGP画像やmetaタグの設定漏れを採点し、直し方のコードまで出します。";
+const description = "OGPチェッカーは、URLを貼るだけで、OGP（シェアされたときの表示）を無料で確認できるツールです。X・Facebook・LINE・Slack・Discord・Teamsでの見え方をプレビューし、OGP画像やmetaタグの設定漏れを採点して、直し方のコードまで出します。登録不要で、入れたURLと結果は保存しません。";
 const jsonLd = [
   ORG,
-  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "OGPチェッカー", description, applicationCategory: "DeveloperApplication", operatingSystem: "Web", inLanguage: "ja", url, dateModified: D.UPDATED, offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" }, publisher: PUBLISHER },
+  { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "OGPチェッカー", description, applicationCategory: "DeveloperApplication", operatingSystem: "Web", inLanguage: "ja", url, dateModified: D.UPDATED, isAccessibleForFree: true, browserRequirements: "Requires JavaScript. Chrome・Edge・Safari・Firefox の新しい版", offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" }, publisher: PUBLISHER },
   { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["ホーム", "https://tools.insemble.jp/"], ["OGPチェッカー", url]].map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, item: u })) },
   { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: D.FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
 ];
@@ -84,12 +85,13 @@ const ABOUT: [string, string, boolean?][] = [
   ["しくみ", "入力されたURLのページを運営者のサーバーから読みに行き、<head> の中の OGP・Twitterカード・canonical を読み取って採点します。"],
   ["保存", "入力したURLとチェック結果は、運営者のサーバーに保存しません。最近チェックしたURLは、お使いのブラウザの中にだけ残ります。"],
   ["対応サービス", "X・Facebook・LINE・Slack・Discord・Microsoft Teams"],
-  ["料金", "無料で、登録も要りません。PC・スマホのどちらでも使えます。"],
+  ["料金", "無料です。会員登録もインストールも要りません。"],
+  ["対応環境", "PC・スマホ・タブレットのブラウザ（Chrome・Edge・Safari・Firefox の新しい版）で使えます。"],
   ["免責", "結果の正確さは保証しません。このツールを使って生じた損害について、運営者に故意または重大な過失がある場合を除き、責任を負いません。", true],
 ];
 ---
 <Base
-  title="OGPチェッカー｜X・LINE・Facebookでのシェア表示を無料で確認｜insemble tools"
+  title="OGPチェッカー｜OGPの表示を無料で確認（X・LINE・Teams対応）｜insemble tools"
   description={description}
   path="/ogp/"
   ogTitle="OGPチェッカー｜シェアする前に、見え方をたしかめよう"
@@ -298,6 +300,7 @@ const ABOUT: [string, string, boolean?][] = [
             <dl>
               {ABOUT.map(([k, v, terms]) => <div><dt>{k}</dt><dd>{v}{terms && <>くわしくは<a href="/terms/">利用規約</a>をご覧ください。</>}</dd></div>)}
             </dl>
+            <Share url={url} text="OGPチェッカー｜URLを貼るだけで、X・LINE・Facebook・Teamsでのシェア表示を無料で確認できます" />
           </div>
           {HUB.SHOW_UPDATES && (
             <div class="about-log">
@@ -319,6 +322,7 @@ const ABOUT: [string, string, boolean?][] = [
           <span class="op-k">運営</span>
           <b class="op-name">insemble</b>
           <span class="op-d">インセンブル｜北海道 札幌市のWeb制作会社です。サイト制作と、業務に合わせたWebツールの開発をしています。</span>
+          <a class="op-a" href="/about/">insemble tools について<Icon name="arrow" size={14} /></a>
           <a class="op-a" href="https://www.insemble.co.jp/" target="_blank" rel="noopener">会社サイト<Icon name="arrow" size={14} /></a>
         </p>
       </section>

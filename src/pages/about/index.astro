@@ -1,0 +1,162 @@
+---
+/* insemble tools について：サイトと運営者の紹介（ブランドの一次情報）
+   AIや検索が「insemble tools とは何か」を正しく引用できるよう、約束（無料・登録不要・保存しない）・ツールの一覧・運営者・更新履歴を、事実として1か所にまとめる
+   ツールの一覧と更新履歴は src/data/hub.js から出す（ここに手で書かない）。入力の扱いの書き方は規約 /terms/ とそろえる
+   書いてよいのは、ほかのページや会社サイトに出している事実だけ。運営者の実名・経歴など、まだ出していない情報は足さない */
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import Icon from "../../components/Icon.astro";
+import { ORG, PUBLISHER } from "../../data/org.js";
+import HUB from "../../data/hub.js";
+import "../../styles/hub.css";
+
+const REVISED = "2026-11-18"; // このページの最終更新日（サイトマップの lastmod にも使う）
+const jaDate = (d: string) => { const [y, m, day] = d.split("-").map(Number); return `${y}年${m}月${day}日`; };
+
+const site = "https://tools.insemble.jp/";
+const url = site + "about/";
+const live = HUB.TOOLS.filter((t) => t.status === "live").sort((a, b) => (a.hot ?? 99) - (b.hot ?? 99));
+const catLabel = (id: string) => HUB.CATS.find((c) => c.id === id)?.label ?? "";
+const description = "insemble tools は、北海道札幌市のWeb制作会社 株式会社インセンブルが運営する、無料のWebツール集です。登録不要・広告なしで、入れた内容を運営者は保存しません。ツールの一覧と特徴、運営者、更新履歴をまとめています。";
+
+/* 約束：どのツールにも共通する事実（規約 /terms/ の「入力した内容の扱い」と食い違わないように） */
+const PROMISES: [t: string, d: string][] = [
+  ["無料・登録不要・広告なし", "すべてのツールを無料で使えます。会員登録もインストールも要りません。ふつうに使う範囲では、回数の制限もありません。"],
+  ["入れた内容を、運営者は保存しない", "名前・予定・PDF・写真を扱うツールは、お使いのブラウザの中だけで処理し、外部に送りません。URLを調べるツール（OGPチェッカー）は、ページの情報を読み取るために運営者のサーバーを経由しますが、入れたURLと結果は保存しません。あと何日？とスケジュール→Excelメーカーは、続きから使えるように、入れた内容をお使いのブラウザの中にだけ保存します。"],
+  ["PC・スマホのブラウザだけで使える", "Chrome・Edge・Safari・Firefox の新しい版で動くようにつくっています。開いてすぐ使えて、結果はコピー・画像・Excel・CSV・ZIPなど、用途に合う形で持ち出せます。"],
+];
+
+const LOG = HUB.CHANGELOG;
+
+const jsonLd = [
+  ORG,
+  { "@context": "https://schema.org", "@type": "AboutPage", name: "insemble tools について", url, inLanguage: "ja", description, dateModified: REVISED, about: { "@type": "WebSite", name: "insemble tools", url: site, publisher: PUBLISHER }, publisher: PUBLISHER },
+  { "@context": "https://schema.org", "@type": "ItemList", name: "insemble tools のツール", itemListElement: live.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.name, description: t.desc, url: site + t.slug + "/" })) },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [["ホーム", site], ["insemble tools について", url]].map(([n, u], i) => ({ "@type": "ListItem", position: i + 1, name: n, item: u })) },
+];
+
+const NAV: [string, string][] = [["/#tools", "ツール一覧"], ["#list", "ツールの特徴"], ["#operator", "運営者"]];
+const FOOT: { h: string; items: [string, string][] }[] = [
+  { h: "ツール", items: [...live.map((t) => [HUB.label(t), "/" + t.slug + "/"] as [string, string]), ["ツール一覧", "/#tools"]] },
+];
+---
+<Base title="insemble tools について｜運営者とツールの一覧｜insemble tools" description={description} path="/about/" jsonLd={jsonLd}>
+  <Header nav={NAV} />
+
+  <main class="wrap ab">
+    <nav class="crumb" aria-label="パンくずリスト">
+      <ol>
+        <li><a href="/">ホーム</a></li>
+        <li><span aria-current="page">insemble tools について</span></li>
+      </ol>
+    </nav>
+
+    <header class="ab-head">
+      <h1>insemble tools について</h1>
+      <p class="ab-date"><Icon name="reset" size={14} />最終更新日 <time datetime={REVISED}>{jaDate(REVISED)}</time></p>
+      <p class="ab-lead">insemble tools（インセンブル ツールズ）は、北海道札幌市のWeb制作会社 株式会社インセンブルが運営する、無料のWebツール集です。席順やグループ分け、PDFや写真の取り出し、予定表のExcel化、締切のカウントダウン、OGP（シェアされたときの表示）の確認など、「毎回ちょっと面倒」な作業を、ブラウザを開くだけで片づけられるようにしています。</p>
+    </header>
+
+    <section class="ab-sec" aria-labelledby="promise-h">
+      <h2 id="promise-h">どのツールにも共通する約束</h2>
+      <dl class="ab-dl">
+        {PROMISES.map(([t, d]) => <div><dt>{t}</dt><dd>{d}</dd></div>)}
+      </dl>
+      <p class="ab-note">入力した内容とアクセス解析の扱いは、<a href="/terms/">利用規約・プライバシーポリシー</a>にくわしく書いています。</p>
+    </section>
+
+    <section class="ab-sec" id="list" aria-labelledby="list-h">
+      <h2 id="list-h">ツールの一覧と特徴</h2>
+      <p class="ab-p">いま使えるツールは{live.length}つです。「端末内で処理」のツールは、入れたものをどこにも送りません。</p>
+      <ul class="ab-tools">
+        {live.map((t) => (
+          <li>
+            <h3><a href={"/" + t.slug + "/"}>{t.name}</a></h3>
+            <p>{t.desc}</p>
+            <p class="ab-tmeta">{catLabel(t.cat)}・{t.url ? "URLを取得（入れたURLと結果は保存しません）" : "端末内で処理"}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="ab-sec" id="operator" aria-labelledby="operator-h">
+      <h2 id="operator-h">運営者</h2>
+      <dl class="ab-dl">
+        <div><dt>運営会社</dt><dd>{ORG.legalName}（{ORG.name}／{ORG.alternateName}）</dd></div>
+        <div><dt>所在地</dt><dd>{ORG.address.addressRegion} {ORG.address.addressLocality}</dd></div>
+        <div><dt>事業</dt><dd>Webサイトの制作と、業務に合わせたWebツールの開発をしています。</dd></div>
+        <div><dt>会社サイト</dt><dd><a href={ORG.url} target="_blank" rel="noopener">{ORG.url}</a></dd></div>
+        <div><dt>お問い合わせ</dt><dd>ツールの不具合・ご要望・制作のご相談は、会社サイトの<a href="https://www.insemble.co.jp/contact" target="_blank" rel="noopener">お問い合わせ窓口</a>からお送りください。</dd></div>
+      </dl>
+    </section>
+
+    <section class="ab-sec" aria-labelledby="link-h">
+      <h2 id="link-h">紹介・リンクについて</h2>
+      <p class="ab-p">どのページにも、連絡なしでリンクしていただけます。ブログ・比較記事・社内資料での紹介もご自由にどうぞ。紹介していただくときは、「無料・登録不要で、入れた内容を運営者が保存しない」ことを添えていただけると、読む方に安心してもらいやすくなります。</p>
+    </section>
+
+    <section class="ab-sec" aria-labelledby="log-h">
+      <h2 id="log-h">更新履歴</h2>
+      <ol class="ab-log">
+        {LOG.map((u) => {
+          const t = HUB.TOOLS.find((x) => x.slug === u.tool && x.status === "live");
+          return (
+            <li>
+              <time datetime={u.date.replace(/\//g, "-")}>{u.date}</time>
+              <span class="ab-kind">{u.kind}</span>
+              <span>{u.text}{t && <>（<a href={"/" + t.slug + "/"}>{t.name}</a>）</>}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  </main>
+
+  <Footer cols={FOOT} />
+  <script>
+    import "../../scripts/site.js";
+  </script>
+</Base>
+
+<style>
+  /* 読みもの：白地に罫線と余白だけで区切る（カードにしない）。幅は読み物幅（--col-read）。規約ページと同じ組み方 */
+  .ab{max-width:calc(var(--col-read) + 48px);padding-bottom:var(--g-xl);color:var(--ink)}
+
+  .crumb{padding:var(--g-md) 0}
+  .crumb ol{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;font-size:13px;color:var(--muted)}
+  .crumb li{display:flex;align-items:center;min-width:0}
+  .crumb li+li::before{content:"";width:5px;height:5px;border-top:1.5px solid var(--line-2);border-right:1.5px solid var(--line-2);transform:rotate(45deg);margin:0 10px 0 8px;flex-shrink:0}
+  .crumb a{color:var(--ink-2);text-decoration:none}
+  .crumb a:hover{color:var(--primary-ink);text-decoration:underline;text-underline-offset:3px}
+
+  .ab-head{padding-bottom:var(--g-md);border-bottom:3px solid var(--ink)}
+  h1{font-family:var(--font-display);font-weight:800;font-size:clamp(28px,4.4vw,38px);line-height:1.3;letter-spacing:-.015em;text-wrap:pretty}
+  .ab-date{display:flex;align-items:center;gap:6px;margin-top:var(--g-sm);font-size:14px;color:var(--muted)}
+  .ab-date time{color:var(--ink-2);font-weight:500}
+  .ab-lead{margin-top:var(--g-sm);font-size:16px;line-height:1.9;color:var(--ink-2);text-wrap:pretty}
+
+  .ab-sec{margin-top:var(--g-xl);scroll-margin-top:84px}
+  .ab-sec h2{font-family:var(--font-display);font-weight:800;font-size:clamp(21px,2.6vw,25px);line-height:1.5;padding-bottom:var(--g-xs);border-bottom:3px solid var(--ink)}
+  .ab-p,.ab-note{margin-top:var(--g-sm);font-size:16px;line-height:1.9;color:var(--ink-2)}
+  .ab a{color:var(--primary-ink);text-decoration:underline;text-underline-offset:3px}
+
+  .ab-dl div{display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--g-sm);padding:var(--g-sm) 0;border-bottom:1px solid var(--line);font-size:16px}
+  .ab-dl dt{font-weight:700;color:var(--ink);line-height:1.85}
+  .ab-dl dd{color:var(--ink-2);line-height:1.85;overflow-wrap:anywhere}
+  @media(max-width:560px){.ab-dl div{grid-template-columns:1fr;gap:4px}}
+
+  .ab-tools{list-style:none}
+  .ab-tools li{padding:var(--g-sm) 0;border-bottom:1px solid var(--line)}
+  .ab-tools h3{font-family:var(--font-display);font-weight:800;font-size:18px;line-height:1.5}
+  .ab-tools h3 a{text-decoration:none}
+  .ab-tools h3 a:hover{text-decoration:underline}
+  .ab-tools p{margin-top:4px;font-size:16px;line-height:1.85;color:var(--ink-2)}
+  .ab-tools .ab-tmeta{font-size:14px;color:var(--muted)}
+
+  .ab-log{list-style:none}
+  .ab-log li{display:grid;grid-template-columns:7em 3.5em minmax(0,1fr);gap:var(--g-xs);padding:12px 0;border-bottom:1px solid var(--line);font-size:16px;line-height:1.75;color:var(--ink-2)}
+  .ab-log time{font-variant-numeric:tabular-nums;color:var(--muted)}
+  .ab-kind{font-weight:700;color:var(--ink)}
+  @media(max-width:560px){.ab-log li{grid-template-columns:auto 1fr}.ab-log li>span:last-child{grid-column:1/-1}}
+</style>
